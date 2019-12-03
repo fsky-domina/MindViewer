@@ -1,4 +1,4 @@
-QT       += core gui widgets
+QT       += core gui widgets serialport
 
 CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
@@ -23,10 +23,10 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
+RESOURCES += \
+    resources.qrc
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-RESOURCES += \
-    resources.qrc
