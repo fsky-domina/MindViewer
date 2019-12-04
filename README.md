@@ -1,101 +1,49 @@
-# Outline
+# MindViewer
 
-1. [Prepare](#Prepare) 
-2. [TGAM Specification](#TGAM-Specification)
-    - [General](#General)
-    - [I/O pins](#(I/O-pins))
-    - [Serial Communication](#(Serial-Communication))
-        - [ThinkGear CODE](#(ThinkGear-CODE))
-        - [Command bytes](#(Command-bytes))
-    - [Configurable Default Settings](#(Configurable-Default-Settings))
-    - [Mechanical Drawing](#(Mechanical-Drawing))
-3. [TGAM Communication Protocol](#(TGAM-Communication-Protocol))
-    - [Introduction](#Introduction)
-    - [Bluetooth Interface](#(Bluetooth-Interface))
-    - [ThinkGear Data Values](#(ThinkGear-Data-Values))
-        - [POOR_SIGNAL Quality](#(POOR_SIGNAL-Quality))
-        - [eSense™ Meters](#(eSense™-Meters))
-        - [ATTENTION eSense](#(ATTENTION-eSense))
-        - [MEDITATION eSense](#(MEDITATION-eSense))
-        - [RAW Wave Value (16-bit)](#(RAW-Wave-Value-(16-bit)))
-        - [ASIC_EEG_POWER](#ASIC_EEG_POWER)
-        - [Blink Strength](#(Blink-Strength))
-    - [ThinkGear Packets](#(ThinkGear-Packets))
-        - [Packet Structure](#(Packet-Structure))
-        - [Packet Header](#(Packet-Header))
-        - [Data Payload](#(Data-Payload))
-        - [Payload Checksum](#(Payload-Checksum))
-        - [Data Payload Structure](#(Data-Payload-Structure))
-        - [DataRow Format](#(DataRow-Format))
-            - [CODE Definitions Table](#(CODE-Definitions-Table))
-    - [Example Packet](#(Example-Packet))
-        - [Step-By-Step Guide to Parsing a Packet](#(Step-By-Step-Guide-to-Parsing-a-Packet))
-        - [Step-By-Step Guide to Parsing DataRows in a Packet Payload](#(Step-By-Step-Guide-to-Parsing-DataRows-in-a-Packet-Payload))
-        - [Sample C Code for Parsing a Packet](#(Sample-C-Code-for-Parsing-a-Packet))
-        - [ThinkGearStreamParser C API](#(ThinkGearStreamParser-C-API))
-4. [Connecting](#Connecting)
-5. [Data](#Data)
-    - [小包](#(小包))
-    - [关于眨眼](#(关于眨眼))
-6. [MindViewer](#MindViewer)
-    - [Build](#Build)
-    - [Version](#Version)
+使用TGAM模块的脑电波可视化工具
 
-# Prepare
+# 准备
 
-TGAM模块一个
+TGAM模块一个（没有的话可以不用看了）
 
 蓝牙模块一个（必须，否则无法获取数据）
 
-# TGAM specification
+# TGAM技术参数
 
-The MindSet transmits ThinkGear Data Values, encoded within inkGear Packets, as a serial stream
-of bytes over Bluetooth via a standard Bluetooth Serial Port Proíle (SPP):
-• Bluetooth Profile: Serial Port Profile (SPP)
-• Baud Rate: 57600
-• Authentication key: 0000
-Please refer to the MindSet Quick Start Guide and/or MindSet Instruction Manual that accompanied
-your MindSet for instructions on how to pair the MindSet to your Windows or Mac computer via
-SPP using Bluetooth drivers and Bluetooth stacks available for those platforms. For information on
-pairing the MindSet via SPP on other platforms, please refer to your platform's documentation, and
-to the SPP specifications that can be found on the Web.
-
-## General 
+## 通用参数
 
 ![avater](img/specification.png)
 
-| Classification | Specification | Notes|
+| 分类 | 参数 | 备注 |
 |-------------------- | ------------------ | ---------|
-| Product Family | ThinkGear-AM | A = ASIC, M = Module |
+| 产品系列 | ThinkGear-AM | A = ASIC, M = Module |
 | Model Number | TGAM1 |
 | Revision Number | 2.4  | Also can be used for 2.3 |
 | Module Dimension (Max) | 27.9mm x 15.2mm x 2.5mm | 1.10in x 0.60in x 0.10in <br> (L x W x H) |
 | Module Weight (Max) | 130mg | 0.0045 ounces |
-| Operating Voltage | 2.97V ~ 3.63V  | Stuff Option* <br>SP6200 3.0~6.0V <br> MAX1595 1.8~5.5V|
+| 工作电压 | 2.97V ~ 3.63V  | Stuff Option* <br>SP6200 3.0~6.0V <br> MAX1595 1.8~5.5V|
 | Max Input Voltage Noise | 10mV Peak to Peak |
-| Max Power Consumption | 15mA @ 3.3V
-| ESD Protection | 4kV Contact Discharge <br> 8kV Air Discharge | Tested at EEG, REF,GND|
-| Output Interface Standard | UART(Serial) | TX, RX, VCC(+), GND(-) |
-| Output Baud Rate | 1200, 9600, 57600 | Default set with stuff option|
-| #EEG Channels | 1 | 3 contacts (EEG, REF, GND)|
+| 最大功耗 | 15mA @ 3.3V
+| ESD保护 | 4kV Contact Discharge <br> 8kV Air Discharge | Tested at EEG, REF,GND|
+| 输出交互标准 | UART(Serial) | TX, RX, VCC(+), GND(-) |
+| 输出波特率 | 1200, 9600, 57600 | Default set with stuff option|
+| EEG Channels | 1 | 3 contacts (EEG, REF, GND)|
 
-***Check with NeuroSky Sales for price addition.***
-
-## I/O pins 
+## I/O脚
 
 ![avater](img/board-layout.png)
 
 Header P1 (Electrode)
 
-Pin1: EEG Electrode "EEG"
+Pin1: EEG电极 "EEG"
 
 Pin2: EEG Shield
 
-Pin3: Ground Electrode
+Pin3: 接地极
 
 Pin4: Reference Shield
 
-Pin5: Reference Electrode "REF"
+Pin5: 参考电极 "REF"
 
 Header P4 (Power)
 
@@ -115,16 +63,12 @@ Pin4: TXD "T"
 
 Note: Labels in "" indicated on PCB for convenience.
 
-## Serial Communication
-
-This section only outlines parts that are different from the standard ThinkGear API. Please refer to the ThinkGear API and Reference Manual for more details.
-
 
 ### ThinkGear CODE
 
-The code that may appear in the inkGear packets are listed in the following table.
+下表列出了可能会出现在thinkgear包中的代码
 
-| Code | Length | Value | Default Setting |
+| 代码 | 长度 | 值 | 默认设置 |
 | ------- | ----------- | -------- | ---------------------- |
 | 0x02 | N/A | Poor Quality (0-200) | On |
 | 0x04 | N/A | eSense Attention (0-100) | On |
@@ -134,11 +78,13 @@ The code that may appear in the inkGear packets are listed in the following t
 
 ### Command bytes
 
-The command bytes supported by TGAM1 is listed below.
-Page 0 (0000____) (0x0_): STANDARD/ASIC CONFIG COMMANDS* **
-00000000 (0x00): 9600 baud, normal output mode
-00000001 (0x01): 1200 baud, normal output mode
-00000010 (0x02): 57.6k baud, normal+raw output mode
+下表列出TGAM1支持的命令：
+
+|Page 0 (0000____) (0x0_):| STANDARD/ASIC CONFIG COMMANDS|
+|---|---|
+|00000000 (0x00): |9600 baud, 正常输出模式|
+|00000001 (0x01): |1200 baud, 正常输出模式|
+|00000010 (0x02): |57.6k baud, 正常+源输出模式|
 
 ## Configurable Default Settings
 
@@ -146,7 +92,7 @@ TGAM1 has configuration pads that can be used to change two default settings tha
 
 ![avater](img/pad.png)
 
-Figure 3.1: TGAM1's Configuration Pads
+Figure 3.1: TGAM1's配置板
 
 ![avater](img/br0.png)
 
@@ -182,7 +128,6 @@ The baud rate can also be configured after the module is powered up by sending c
 
 As mentioned earlier, TGAM1’s notch filter frequency can be configured with the M configuration pads. It is used to select either 50Hz or 60Hz to reduce the AC noise speciëc to a targeted market. As indicated in Figure 3.3, the top pad is GND and bottom pad is VCC. Tie the M pad to VCC pad to select 60Hz, and to GND pad to select 50Hz notch filtering frequency. Unlike the BR0, BR1 configuration, there is no equivalent software configuration for the M configuration. The most common stuff option for these configuration pads are illustrated in Figure 3.1, configuring the TGAM1 for 9600 Baud, normal output and 60Hz notch filtering frequency. For other stuffing options, contact NeuroSky Sales to get the correct ordering code.
 
-
 ## Mechanical Drawing 
 
 The dimensions and major components of the TGAM1 is shown in the mechanical drawing in Figure 4.1. There are two mounting holes at the upper right and lower left corner. They can be used to secure the TGAM1 to your system housing.
@@ -194,6 +139,7 @@ Figure 4.1: Mechanical Drawing & Thickness
 # TGAM Communication Protocol
 
 ## Introduction
+
 ThinkGear™ is the technology inside every NeuroSky product or partner product that enables a device
 to interface with the user's brainwaves. ThinkGear includes the sensor that touches the forehead, the
 contact and reference points located on the ear pad, and the onboard chip that processes all of the data
@@ -214,8 +160,8 @@ kinds of Data Values are (and aren't) available from MindSet before continuing t
 The ThinkGear Packets chapter describes the ThinkGear Packet format used to deliver the ThinkGear
 Data Values over the serial I/O stream.
 
-
 ## Bluetooth Interface
+
 The MindSet transmits ThinkGear Data Values, encoded within ThinkGear Packets, as a serial stream
 of bytes over Bluetooth via a standard Bluetooth Serial Port Proíle (SPP):
 • Bluetooth Profile: Serial Port Profile (SPP)
@@ -230,6 +176,7 @@ to the SPP specifications that can be found on the Web.
 ## ThinkGear Data Values
 
 ### POOR_SIGNAL Quality
+
 This unsigned one-byte integer value describes how poor the signal measured by the ThinkGear is. It
 ranges in value from 0 to 200. Any non-zero value indicates that some sort of noise contamination is
 detected. The higher the number, the more noise is detected. A value of 200 has a special meaning,
@@ -356,6 +303,7 @@ A ThinkGear Packet is a packet format consisting of 3 parts:
 1. Packet Header
 2. Packet Payload
 3. Payload Checksum
+
 ThinkGear Packets are used to deliver Data Values (described in the previous chapter) from aThinkGear
 module to an arbitrary receiver (a PC, another microprocessor, or any other device that can receive a
 serial stream of bytes). Since serial I/O programming APIs are different on every platform, operating
@@ -363,6 +311,7 @@ system, and language, it is outside the scope of this document (see your platfor
 serial I/O programming). This chapter will only cover how to interpret the serial stream of bytes into
 ThinkGear Packets, Payloads, and finally into the meaningful Data Values described in the previous
 chapter.
+
 The Packet format is designed primarily to be robust and ìexible: Combined, the Header and Check-
 sum provide data stream synchronization and data integrity checks, while the format of the Data
 Payload ensures that new data fields can be added to (or existing data fields removed from) the Packet
@@ -377,13 +326,14 @@ Packets are sent as an asynchronous serial stream of bytes. The transport medium
 COM, USB, bluetooth, file, or any other mechanism which can stream bytes.
 Each Packet begins with its Header, followed by its Data Payload, and ends with the Payload's Check-
 sum Byte, as follows:
+```
 [SYNC] [SYNC] [PLENGTH] [PAYLOAD...] [CHKSUM]
 _______________________ _____________ ____________
 ^^^^^^^^(Header)^^^^^^^ ^^(Payload)^^ ^(Checksum)^
-The [PAYLOAD…] section is allowed to be up to 169 bytes long, while each of [SYNC], [PLENGTH],
-and [CHKSUM] are a single byte each. This means that a complete, valid Packet is a minimum of 4
-bytes long (possible if the Data Payload is zero bytes long, i.e. empty) and a maximum of 173 bytes
-long (possible if the Data Payload is the maximum 169 bytes long).
+```
+
+The [PAYLOAD…] section is allowed to be up to 169 bytes long, while each of [SYNC], [PLENGTH], and [CHKSUM] are a single byte each. This means that a complete, valid Packet is a minimum of 4 bytes long (possible if the Data Payload is zero bytes long, i.e. empty) and a maximum of 173 bytes long (possible if the Data Payload is the maximum 169 bytes long).
+
 A procedure for properly parsing ThinkGear Packets is given below in Step-By-Step Guide to Parsing
 a Packet.
 
@@ -391,9 +341,12 @@ a Packet.
 
 The Header of a Packet consists of 3 bytes: two synchronization [SYNC] bytes (0xAA 0xAA), followed
 by a [PLENGTH] (Payload length) byte:
+```
 [SYNC] [SYNC] [PLENGTH]
 _______________________
 ^^^^^^^^(Header)^^^^^^^
+```
+
 The two [SYNC] bytes are used to signal the beginning of a new arriving Packet and are bytes with
 the value 0xAA (decimal 170). Synchronization is two bytes long, instead of only one, to reduce the
 chance that [SYNC] (0xAA) bytes occurring within the Packet could be mistaken for the beginning
@@ -474,14 +427,14 @@ Parsing a Packet and Step-By-Step Guide to Parsing DataRows in a Packet Payload,
 #### CODE Definitions Table
 
 Single-Byte CODEs
-Extended (Byte)
-Code Level [CODE] [LENGTH] Data Value Meaning
+
+Extended (Byte) Code Level [CODE] [LENGTH] Data Value Meaning
 ---------- ------ -------- ------------------
 0 0x02 - POOR_SIGNAL Quality (0-255)
 0 0x04 - ATTENTION eSense (0 to 100)
 0 0x05 - MEDITATION eSense (0 to 100)
-0 0x16 - Blink Strength. (0-255) Sent only
-when Blink event occurs.
+0 0x16 - Blink Strength. (0-255) Sent only when Blink event occurs.
+
 Multi-Byte CODEs
 Extended (Byte)
 Code Level [CODE] [LENGTH] Data Value Meaning
@@ -509,6 +462,7 @@ The following is a typical packet. Aside from the [SYNC], [PLENGTH], and [CHKSUM
 other bytes (bytes [ 3] to [34]) are part of the Packet's Data Payload. Note that the DataRows
 within the Payload are not guaranteed to appear in every Packet, nor are any DataRows that do appear
 guaranteed by the Packet specification to appear in any particular order.
+```
 byte: value // [CODE] Explanation
 
 [ 0]: 0xAA // [SYNC]
@@ -582,7 +536,10 @@ byte: value // [CODE] Explanation
 [34]: 0x3D // eSense Meditation level of 61
 
 [35]: 0x34 // [CHKSUM] (1's comp inverse of 8-bit Payload sum of 0xCB)
+```
+
 ### Step-By-Step Guide to Parsing a Packet
+
 1. Keep reading bytes from the stream until a [SYNC] byte (0xAA) is encountered.
 2. Read the next byte and ensure it is also a [SYNC] byte
 • If not a [SYNC] byte, return to step 1.
@@ -594,6 +551,7 @@ byte: value // [CODE] Explanation
 4. Read the next [PLENGTH] bytes of the [PAYLOAD…] from the stream, saving them into a storage
 area (such as an unsigned char payload[256] array). Sum up each byte as it is read by
 incrementing a checksum accumulator (checksum += byte).
+
 5. Take the lowest 8 bits of the checksum accumulator and invert them. Here is the C code:
 checksum &= 0xFF;
 checksum = ~checksum & 0xFF;
@@ -603,7 +561,9 @@ checksum = ~checksum & 0xFF;
 • Otherwise, you may now parse the contents of the Payload into DataRows to obtain the
 Data Values, as described below.
 • In either case, return to step 1.
+
 ### Step-By-Step Guide to Parsing DataRows in a Packet Payload
+
 Repeat the following steps for parsing a DataRow until all bytes in the payload[] array ([PLENGTH]
 bytes) have been considered and parsed:
 1. Parse and count the number of [EXCODE] (0x55) bytes that may be at the beginning of the
@@ -614,49 +574,51 @@ current DataRow.
 CODE] level, [CODE], and [VLENGTH] (refer to the Code Definitions Table).
 5. If not all bytes have been parsed from the payload[] array, return to step 1. to continue parsing
 the next DataRow.
+
 ### Sample C Code for Parsing a Packet
+
 The following is an example of a program, implemented in C, which reads from a stream and (correctly)
 parses Packets continuously. Search for the word TODO for the two sections which would need to
 be modified to be appropriate for your application.
 Note: For simplicity, error checking and handling for standard library function calls have been omit-
 ted. A real application should probably detect and handle all errors gracefully.
-```
+```C++
 #include <stdio.h>
 #define SYNC 0xAA
 #define EXCODE 0x55
 int parsePayload( unsigned char *payload, unsigned char pLength ) {
-unsigned char bytesParsed = 0;
-unsigned char code;
-unsigned char length;
-unsigned char extendedCodeLevel;
-int i;
-/* Loop until all bytes are parsed from the payload[] array... */
-while( bytesParsed < pLength ) {
+    unsigned char bytesParsed = 0;
+    unsigned char code;
+    unsigned char length;
+    unsigned char extendedCodeLevel;
+    int i;
+    /* Loop until all bytes are parsed from the payload[] array... */
+    while( bytesParsed < pLength ) {
     /* Parse the extendedCodeLevel, code, and length */
-    extendedCodeLevel = 0;
-    while( payload[bytesParsed] == EXCODE ) {
-        extendedCodeLevel++;
-        bytesParsed++;
+        extendedCodeLevel = 0;
+        while( payload[bytesParsed] == EXCODE ) {
+            extendedCodeLevel++;
+            bytesParsed++;
+        }
+        code = payload[bytesParsed++];
+        if( code & 0x80 ) length = payload[bytesParsed++];
+        else length = 1;
+        /* TODO: Based on the extendedCodeLevel, code, length,
+        * and the [CODE] Definitions Table, handle the next
+        * "length" bytes of data from the payload as
+        * appropriate for your application.
+         */
+        printf( "EXCODE level: %d CODE: 0x%02X length: %d\n",
+        extendedCodeLevel, code, length );
+        printf( "Data value(s):" );
+        for( i=0; i<length; i++ ) {
+            printf( " %02X", payload[bytesParsed+i] & 0xFF );
+        }
+        printf( "\n" );
+        /* Increment the bytesParsed by the length of the Data Value */
+        bytesParsed += length;
     }
-    code = payload[bytesParsed++];
-    if( code & 0x80 ) length = payload[bytesParsed++];
-    else length = 1;
-    /* TODO: Based on the extendedCodeLevel, code, length,
-     * and the [CODE] Definitions Table, handle the next
-     * "length" bytes of data from the payload as
-     * appropriate for your application.
-     */
-    printf( "EXCODE level: %d CODE: 0x%02X length: %d\n",
-    extendedCodeLevel, code, length );
-    printf( "Data value(s):" );
-    for( i=0; i<length; i++ ) {
-        printf( " %02X", payload[bytesParsed+i] & 0xFF );
-    }
-    printf( "\n" );
-    /* Increment the bytesParsed by the length of the Data Value */
-    bytesParsed += length;
-}
-   return( 0 );
+    return( 0 );
 }
 
 int main( int argc, char **argv ) 
@@ -666,41 +628,41 @@ int main( int argc, char **argv )
     unsigned char pLength;
     unsigned char c;
     unsigned char i;
-/* TODO: Initialize 'stream' here to read from a serial data
-* stream, or whatever stream source is appropriate for your
-* application. See documentation for "Serial I/O" for your
-* platform for details.
-*/
-FILE *stream = 0;
-stream = fopen( "COM4", "r" );
-/* Loop forever, parsing one Packet per loop... */
-while( 1 ) {
-/* Synchronize on [SYNC] bytes */
-fread( &c, 1, 1, stream );
-if( c != SYNC ) continue;
-fread( &c, 1, 1, stream );
-if( c != SYNC ) continue;
-/* Parse [PLENGTH] byte */
-while( true ) {
-fread( &pLength, 1, 1, stream );
-if( pLength ~= 170 ) break;
-}
-if( pLength > 169 ) continue;
-/* Collect [PAYLOAD...] bytes */
-fread( payload, 1, pLength, stream );
-/* Calculate [PAYLOAD...] checksum */
-checksum = 0;
-for( i=0; i<pLength; i++ ) checksum += payload[i];
-checksum &= 0xFF;
-checksum = ~checksum & 0xFF;
-/* Parse [CKSUM] byte */
-fread( &c, 1, 1, stream );
-/* Verify [CKSUM] byte against calculated [PAYLOAD...] checksum */
-if( c != checksum ) continue;
-/* Since [CKSUM] is OK, parse the Data Payload */
-parsePayload( payload, pLength );
-}
-return( 0 );
+    /* TODO: Initialize 'stream' here to read from a serial data
+   * stream, or whatever stream source is appropriate for your
+   * application. See documentation for "Serial I/O" for your
+   * platform for details.
+    */
+    FILE *stream = 0;
+    stream = fopen( "COM4", "r" );
+    /* Loop forever, parsing one Packet per loop... */
+    while( 1 ) {
+        /* Synchronize on [SYNC] bytes */
+        fread( &c, 1, 1, stream );
+        if( c != SYNC ) continue;
+        fread( &c, 1, 1, stream );
+        if( c != SYNC ) continue;
+        /* Parse [PLENGTH] byte */
+        while( true ) {
+            fread( &pLength, 1, 1, stream );
+            if( pLength ~= 170 ) break;
+        }
+        if( pLength > 169 ) continue;
+        /* Collect [PAYLOAD...] bytes */
+        fread( payload, 1, pLength, stream );
+        /* Calculate [PAYLOAD...] checksum */
+        checksum = 0;
+        for( i=0; i<pLength; i++ ) checksum += payload[i];
+        checksum &= 0xFF;
+        checksum = ~checksum & 0xFF;
+        /* Parse [CKSUM] byte */
+        fread( &c, 1, 1, stream );
+        /* Verify [CKSUM] byte against calculated [PAYLOAD...] checksum */
+        if( c != checksum ) continue;
+        /* Since [CKSUM] is OK, parse the Data Payload */
+        parsePayload( payload, pLength );
+    }
+    return( 0 );
 }
 ```
 
@@ -726,7 +688,7 @@ The following subsections are excerpts from the ThinkGearStreamParser.h header f
 as the API documentation.
 
 Constants
-```
+```C++
 /* Parser types */
 #define PARSER_TYPE_NULL 0x00
 #define PARSER_TYPE_PACKETS 0x01 /* Stream bytes as ThinkGear Packets */
@@ -756,12 +718,14 @@ THINKGEAR_initParser()
 * @return 0 on success.
 */
 int
-THINKGEAR_initParser( ThinkGearStreamParser *parser, unsigned char parserType,
-void (*handleDataValueFunc)(
-unsigned char extendedCodeLevel,
-unsigned char code, unsigned char numBytes,
-const unsigned char *value, void *customData),
-void *customData );
+THINKGEAR_initParser( ThinkGearStreamParser *parser,                         unsigned char parserType,
+                    void (*handleDataValueFunc)(
+                    unsigned char extendedCodeLevel,
+                    unsigned char code, 
+                    unsigned char numBytes,
+                    const unsigned char *value, 
+                    void *customData),
+                    void *customData );
 THINKGEAR_parseByte()
 /**
 * @param parser Pointer to an initialized ThinkGearDataParser object.
@@ -781,7 +745,7 @@ Example
 Here is an example program using the ThinkGearStreamParser API. It is very similar to the example
 program described above, simply printing received Data Values to stdout:
 
-```
+```C
 #include <stdio.h>
 #include "ThinkGearStreamParser.h"
 /**
@@ -789,56 +753,57 @@ program described above, simply printing received Data Values to stdout:
 */
 void
 handleDataValueFunc( unsigned char extendedCodeLevel,
-                                        unsigned char code,
-                                unsigned char valueLength,
-                                const unsigned char *value,
-                                void *customData ) 
+                            unsigned char code,
+                            unsigned char valueLength,
+                            const unsigned char *value,
+                            void *customData ) 
 {
-if( extendedCodeLevel == 0 ) {
-switch( code ) {
-/* [CODE]: ATTENTION eSense */
-case( 0x04 ):
-printf( "Attention Level: %d\n", value[0] & 0xFF );
-break;
-/* [CODE]: MEDITATION eSense */
-case( 0x05 ):
-printf( "Meditation Level: %d\n", value[0] & 0xFF );
-break;
-/* Other [CODE]s */
-default:
-printf( "EXCODE level: %d CODE: 0x%02X vLength: %d\n",
-extendedCodeLevel, code, valueLength );
-printf( "Data value(s):" );
-for( i=0; i<valueLength; i++ ) printf( " %02X", value[i] & 0xFF );
-printf( "\n" );
-}}}
+    if( extendedCodeLevel == 0 ) {
+    switch( code ) {
+        /* [CODE]: ATTENTION eSense */
+    case( 0x04 ):
+        printf( "Attention Level: %d\n", value[0] & 0xFF );
+        break;
+    /* [CODE]: MEDITATION eSense */
+    case( 0x05 ):
+        printf( "Meditation Level: %d\n", value[0] & 0xFF );
+        break;
+    /* Other [CODE]s */
+    default:
+        printf( "EXCODE level: %d CODE: 0x%02X vLength: %d\n",
+        extendedCodeLevel, code, valueLength );
+        printf( "Data value(s):" );
+        for( i=0; i<valueLength; i++ ) printf( " %02X", value[i] & 0xFF );
+        printf( "\n" );
+    }
+    }
+}
 /**
 * Program which reads ThinkGear Data Values from a COM port.
 */
 int
 main( int argc, char **argv ) {
-/* 2) Initialize ThinkGear stream parser */
-ThinkGearStreamParser parser;
-THINKGEAR_initParser( &parser, PARSER_TYPE_PACKETS,
-handleDataValueFunc, NULL );
-/* TODO: Initialize 'stream' here to read from a serial data
-* stream, or whatever stream source is appropriate for your
-* application. See documentation for "Serial I/O" for your
-* platform for details.
-*/
-FILE *stream = fopen( "COM4", "r" );
-/* 3) Stuff each byte from the stream into the parser. Every time
-* a Data Value is received, handleDataValueFunc() is called.
-*/
-unsigned char streamByte;
-while( 1 ) {
-fread( &streamByte, 1, stream );
-THINKGEAR_parseByte( &parser, streamByte );
-}
+    /* 2) Initialize ThinkGear stream parser */
+    ThinkGearStreamParser parser;
+    THINKGEAR_initParser( &parser, PARSER_TYPE_PACKETS,handleDataValueFunc, NULL );
+    /* TODO: Initialize 'stream' here to read from a serial data
+    * stream, or whatever stream source is appropriate for your
+    * application. See documentation for "Serial I/O" for your
+    * platform for details.
+    */
+    FILE *stream = fopen( "COM4", "r" );
+    /* 3) Stuff each byte from the stream into the parser. Every time
+    * a Data Value is received, handleDataValueFunc() is called.
+    */
+    unsigned char streamByte;
+    while( 1 ) {
+        fread( &streamByte, 1, stream );
+        THINKGEAR_parseByte( &parser, streamByte );
+    }
 }
 ```
 
-A few things to note:
+注意事项:
 
 • The handleDataValueFunc() callback should be implemented to execute quickly, so as not to block the thread which is reading from the data stream. A more robust (and useful) program would probably spin off the thread which reads from the data stream and calls handleDataValueFunc(), and define handleDataValueFunc() to simply save the Data Values it receives, while the main thread actually uses the saved values for displaying to screen, controlling a game, etc. Threading is outside the scope of this manual.
 • The code for opening a serial communication port data stream for reading varies by operating system and platform. Typically, it is very similar to opening a normal file for reading. Serial communication is outside the scope of this manual, so please consult the documentation for "Serial I/O" for your platform for details. As an alternative, you may use the ThinkGear
@@ -854,32 +819,42 @@ Communications Driver (TGCD) API, which can take care of opening and reading fro
 ![avate](img/data.png)
 
 TGAM大约每秒钟发送513个包，注意是“大约每秒钟”，意思就是发送包的总数是不会变的，只是发送513个包所花费的时间是一秒左右。
+
 发送的包有小包和大包两种：
 
 ## 小包
 
 小包的格式是
+
 ```
 AA AA 04 80 02 xxHigh xxLow xxCheckSum
 ```
+
 前面的AA AA 04 80 02 是不变的，后三个字节是一只变化的，xxHigh和xxLow组成了原始数据rawdata，xxCheckSum就是校验和。所以一个小包里面只包含了一个对开发者来说有用的数据，那就是rawdata，可以说一个小包就是一个原始数据，大约每秒钟会有512个原始数据。
 
 那怎么从小包中解析出原始数据呢？
+
 ```
 rawdata = (xxHigh << 8) | xxLow;
 if( rawdata > 32768){
      rawdata =65536; 
 }
 ```
+
 现在原始数据就这么算出来了，但是在算原始数据之前，我们先应该检查校验和。
+
 校验和怎么算呢？
 ```
 sum = ((0x80 + 0x02 + xxHigh + xxLow)^ 0xFFFFFFFF) & 0xFF
 ```
 什么意思呢？
+
 就是把04后面的四个字节加起来，取反，再取低八位。
+
 如果算出来的sum和xxCheckSum是相等的，那说明这个包是正确的，然后再去计算rawdata，否则直接忽略这个包。丢包率在10%以下是不会对最后结果造成影响的。
+
 现在，原始数据出来了，那我们怎么拿信号强度Signal,专注度Attention,放松度Meditation,和8个EEG Power的值呢？
+
 就在第513个这个大包里面，这个大包的格式是相当固定的，我们就拿上图中的数据来一个字节一个字节地说明他们代表的含义：
 
 红色的是不变的
@@ -964,10 +939,6 @@ D5 校验和
 ## 关于眨眼
 TGAM芯片本身是不会输出眨眼信号的，眨眼是用rawdata原始数据算出来的。表现在原始数据的波形上，眨眼就是一个很大的波峰。只要用代码检测这个波峰的出现，就可以找到眨眼的值了。此外，眨眼其实和脑电波一点儿关系都没有，眨眼只是眼睛动的时候在前额产生的肌（肉）电，混合在了脑波原始数据中。
 
-# MindViewer
-
-使用TGAM模块的脑电波可视化工具
-
 ## Build
 
 ```
@@ -977,10 +948,13 @@ make
 
 ## Version
 
+2019-12-3：
+
+重置项目；
+
 2019-7-21:
 
 修改说明文档；
-
 
 2019-7-3:
 
