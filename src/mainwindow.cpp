@@ -79,22 +79,47 @@ void MainWindow::internalTime()
 
 void MainWindow::on_actionOpen_triggered()
 {
+    filePath = QFileDialog::getOpenFileName(this,tr("Open"),filePath);
+    if(filePath.isEmpty()) return;
 
+    QString ctx;
+    QFile file(filePath);
+    if(file.open(QIODevice::Text|QIODevice::ReadOnly)){
+        QTextStream readIn(&file);
+        ctx = readIn.readAll();
+
+    }
+    file.close();
+    ui->textBrowser->setText(ctx);
+
+    ctx.remove('\n');
+    QStringList ctxList = ctx.split(" ");
+    //qDebug()<<ctxList.size()
+
+    for(int i=1;i<ctxList.count();i++){
+        if((ctxList.at(i-1)=="AA")&&(ctxList.at(i)=="AA")){
+            i+=2;
+            QList<int> first;
+            qDebug()<<i;
+            while((ctxList.at(i-1)!="AA")&&(ctxList.at(i)!="AA")){
+                first.append(ctxList.at(i).toInt(nullptr,16));
+                i++;
+            }
+            qDebug()<<first;
+        }
+    }
 }
 
 void MainWindow::on_actionClose_triggered()
 {
-
 }
 
 void MainWindow::on_actionClear_triggered()
 {
-
 }
 
 void MainWindow::on_actionPrint_triggered()
 {
-
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -118,7 +143,16 @@ void MainWindow::on_actionGraph_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-
+    QString msg = QString("<h1>MindViewer</h1>"
+                          "<h2>TGAM module tools</h2>"
+                          "<h3>Author: JackeyLea</h3>"
+                          "<h3>E-mail: 1768478912@qq.com</h3>"
+                          "<h3>Phone: 13812991101</h3>"
+                          "<h3>GitHub: https://github.com/JackeyLea/MindViewer</h3>"
+                          "<h3>Gitee: https://gitee.com/JackeyLea/MindViewer</h3>"
+                          "<h4>Do what you want but please obey the LGPL3 rules</h4>"
+                          "<h4>And keep those message within application</h4>");
+    QMessageBox::information(this,tr("About"),msg,QMessageBox::Ok);
 }
 
 void MainWindow::on_actionQt_triggered()
@@ -207,7 +241,7 @@ void MainWindow::on_buttonOpen_clicked()
 void MainWindow::on_buttonClose_clicked()
 {
     myCom->close();
-        myCom=nullptr;
-        ui->lineStauts->setText(tr("Close"));
-        QMessageBox::information(this,tr("Tips"),tr("COM has been closed successfully"),QMessageBox::Ok);
+    myCom=nullptr;
+    ui->lineStauts->setText(tr("Close"));
+    QMessageBox::information(this,tr("Tips"),tr("COM has been closed successfully"),QMessageBox::Ok);
 }

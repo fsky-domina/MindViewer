@@ -12,6 +12,9 @@
 #include <QDateTime>
 #include <QDir>
 #include <QTextStream>
+#include <QFileDialog>
+#include <QDebug>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -64,5 +67,7 @@ private:
     QStringList ComList,braudList;
     QSerialPort *myCom;
     QTimer *internalTimer;
+
+    QString filePath;
 };
 #endif // MAINWINDOW_H
