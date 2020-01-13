@@ -2,15 +2,57 @@
 
 使用TGAM模块的脑电波可视化工具
 
-# 准备
+- [MindViewer](#mindviewer)
+  - [准备](#%e5%87%86%e5%a4%87)
+  - [TGAM技术参数](#tgam%e6%8a%80%e6%9c%af%e5%8f%82%e6%95%b0)
+    - [通用参数](#%e9%80%9a%e7%94%a8%e5%8f%82%e6%95%b0)
+    - [I/O脚](#io%e8%84%9a)
+    - [ThinkGear编码](#thinkgear%e7%bc%96%e7%a0%81)
+    - [命令字节](#%e5%91%bd%e4%bb%a4%e5%ad%97%e8%8a%82)
+    - [可配置默认设置](#%e5%8f%af%e9%85%8d%e7%bd%ae%e9%bb%98%e8%ae%a4%e8%ae%be%e7%bd%ae)
+  - [原理图](#%e5%8e%9f%e7%90%86%e5%9b%be)
+  - [TGAM通信协议](#tgam%e9%80%9a%e4%bf%a1%e5%8d%8f%e8%ae%ae)
+    - [前言](#%e5%89%8d%e8%a8%80)
+    - [蓝牙接口](#%e8%93%9d%e7%89%99%e6%8e%a5%e5%8f%a3)
+  - [ThinkGear数值](#thinkgear%e6%95%b0%e5%80%bc)
+    - [POOR_SIGNAL Quality](#poorsignal-quality)
+    - [eSense™计量器](#esense%e2%84%a2%e8%ae%a1%e9%87%8f%e5%99%a8)
+    - [ATTENTION eSense](#attention-esense)
+    - [MEDITATION eSense](#meditation-esense)
+    - [RAW Wave Value (16-bit)](#raw-wave-value-16-bit)
+    - [ASIC_EEG_POWER](#asiceegpower)
+    - [Blink Strength](#blink-strength)
+  - [ThinkGear Packets](#thinkgear-packets)
+    - [Packet Structure](#packet-structure)
+    - [Packet Header](#packet-header)
+    - [Data Payload](#data-payload)
+    - [Payload Checksum](#payload-checksum)
+    - [Data Payload Structure](#data-payload-structure)
+    - [DataRow Format](#datarow-format)
+      - [编码定义表](#%e7%bc%96%e7%a0%81%e5%ae%9a%e4%b9%89%e8%a1%a8)
+  - [示例包](#%e7%a4%ba%e4%be%8b%e5%8c%85)
+    - [一步一步分析数据包指南](#%e4%b8%80%e6%ad%a5%e4%b8%80%e6%ad%a5%e5%88%86%e6%9e%90%e6%95%b0%e6%8d%ae%e5%8c%85%e6%8c%87%e5%8d%97)
+    - [数据包有效负载中数据路的分步解析指南](#%e6%95%b0%e6%8d%ae%e5%8c%85%e6%9c%89%e6%95%88%e8%b4%9f%e8%bd%bd%e4%b8%ad%e6%95%b0%e6%8d%ae%e8%b7%af%e7%9a%84%e5%88%86%e6%ad%a5%e8%a7%a3%e6%9e%90%e6%8c%87%e5%8d%97)
+    - [数据包解析样本C代码](#%e6%95%b0%e6%8d%ae%e5%8c%85%e8%a7%a3%e6%9e%90%e6%a0%b7%e6%9c%acc%e4%bb%a3%e7%a0%81)
+    - [ThinkGearStreamParser C API](#thinkgearstreamparser-c-api)
+      - [常量](#%e5%b8%b8%e9%87%8f)
+      - [示例](#%e7%a4%ba%e4%be%8b)
+  - [Connecting](#connecting)
+  - [Data](#data)
+  - [小包](#%e5%b0%8f%e5%8c%85)
+  - [关于眨眼](#%e5%85%b3%e4%ba%8e%e7%9c%a8%e7%9c%bc)
+  - [Build](#build)
+  - [Version](#version)
+
+## 准备
 
 TGAM模块一个（没有的话可以不用看了）
 
 蓝牙模块一个（必须，否则无法获取数据）
 
-# TGAM技术参数
+## TGAM技术参数
 
-## 通用参数
+### 通用参数
 
 ![avater](img/specification.png)
 
@@ -29,7 +71,7 @@ TGAM模块一个（没有的话可以不用看了）
 | 输出波特率 | 1200, 9600, 57600 | Default set with stuff option|
 | EEG Channels | 1 | 3 contacts (EEG, REF, GND)|
 
-## I/O脚
+### I/O脚
 
 ![avater](img/board-layout.png)
 
@@ -41,7 +83,7 @@ Pin2: EEG Shield
 
 Pin3: 接地极
 
-Pin4: Reference Shield
+Pin4: 参考盾牌
 
 Pin5: 参考电极 "REF"
 
@@ -61,10 +103,9 @@ Pin3: RXD "R"
 
 Pin4: TXD "T"
 
-Note: Labels in "" indicated on PCB for convenience.
+注：为方便起见，""中的标签表示在PCB上
 
-
-### ThinkGear CODE
+### ThinkGear编码
 
 下表列出了可能会出现在thinkgear包中的代码
 
@@ -76,7 +117,7 @@ Note: Labels in "" indicated on PCB for convenience.
 | 0x80 | 2 | 12-bit Raw EEG | Off |
 | 0x83 |24 | EEG Powers (integer) | On |
 
-### Command bytes
+### 命令字节
 
 下表列出TGAM1支持的命令：
 
@@ -86,9 +127,9 @@ Note: Labels in "" indicated on PCB for convenience.
 |00000001 (0x01): |1200 baud, 正常输出模式|
 |00000010 (0x02): |57.6k baud, 正常+源输出模式|
 
-## Configurable Default Settings
+### 可配置默认设置
 
-TGAM1 has configuration pads that can be used to change two default settings that are applied at chip power up. The configuration pads are located on the backside of the TGAM1, as indicated by the red and blue box in Figure 3.1. The BR0 and BR1 pads configure the output baud rate and data content, after the TGAM1 powers up. The M pad configures the notch filter frequency
+TGAM1的配置垫可用于更改两个默认设置，这些设置应用于芯片上电。配置垫位于TGAM1的背面，如图3.1中的红色和蓝色框所示。在TGAM1上电后，BR0和BR1Pad配置输出波特率和数据内容。M垫配置陷波滤波器频率
 
 ![avater](img/pad.png)
 
@@ -103,15 +144,13 @@ Figure 3.1: TGAM1's配置板
 |VCC | GND |57.6k Baud with Normal* + Raw Output Mode|
 |VCC |VCC |N/A|
 
-***Normal Output mode includes the following output: poor quality value, EEG value, Attention value and
-Meditation value.***
+***正常输出模式包括以下输出：劣质值、脑电值、注意力值和冥想的价值。***
 
-A magnified picture of the B1 and B0 pads are shown in Figure 3.2. The first row of pads are GND and
-third row of pads are VCC. The TGAM1 output baud rate and data content after power up behavior depends on the pad setting as described in table above. For example, the stuff option in the module in Figure 3.1 has both BR1 and BR0 tie to GND pads for a 9600 baud with Normal Output Mode.
+图3.2显示了B1和B0垫的放大图片。第一排焊盘为GND，第三排焊盘为VCC..上电行为后的TGAM1输出波特率和数据内容取决于上表中描述的PAD设置。例如，图3.1中模块中的填充选项具有BR1和BR0连接到具有正常输出模式的9600波特的GND垫。
 
 ![avater](img/Bpads.png)
 
-The baud rate can also be configured after the module is powered up by sending commands through the UART interface. The commands are listed in the table below. When the module is reset, the baud rate setting will revert back to the default set by BR0 and BR1.
+通过UART接口发送命令，模块上电后，波特率也可以配置。命令列于下表。当模块被重置时，波特率设置将恢复到由BR0和BR1设置的默认设置。
 
 ![avater](img/output.png)
 
@@ -121,204 +160,147 @@ The baud rate can also be configured after the module is powered up by sending c
 | 0x01 |1200 Baud with Normal* Output Mode |
 | 0x02 | 57.6k Baud with Normal* + Raw Output Mode |
 
-
-***Normal Output mode includes the following output: poor quality value, EEG value, Attention value and Meditation value.***
+***正常输出模式包括以下输出：质量差值、脑电值、注意值和冥想值。***
 
 ![avater](img/mpad.png)
 
-As mentioned earlier, TGAM1’s notch filter frequency can be configured with the M configuration pads. It is used to select either 50Hz or 60Hz to reduce the AC noise speciëc to a targeted market. As indicated in Figure 3.3, the top pad is GND and bottom pad is VCC. Tie the M pad to VCC pad to select 60Hz, and to GND pad to select 50Hz notch filtering frequency. Unlike the BR0, BR1 configuration, there is no equivalent software configuration for the M configuration. The most common stuff option for these configuration pads are illustrated in Figure 3.1, configuring the TGAM1 for 9600 Baud, normal output and 60Hz notch filtering frequency. For other stuffing options, contact NeuroSky Sales to get the correct ordering code.
+如前所述，TGAM1的陷波滤波器频率可以配置为M配置垫。它被用来选择50Hz或60Hz，以减少交流噪声SPEIEC到一个目标市场。如图3.3所示，顶部焊盘为GND，底部焊盘为VCC。将M垫绑在VCC垫上选择60Hz，并将GND垫绑在50Hz陷波滤波频率上。与BR0、BR1配置不同的是，M配置没有等效的软件配置。这些配置垫最常见的配置选项如图3.1所示，为9600Baud、正常输出和60Hz陷波滤波频率配置TGAM1。对于其他填充物选项，请与NeuroSky Sales联系以获得正确的订购代码。
 
-## Mechanical Drawing 
+## 原理图
 
-The dimensions and major components of the TGAM1 is shown in the mechanical drawing in Figure 4.1. There are two mounting holes at the upper right and lower left corner. They can be used to secure the TGAM1 to your system housing.
+图4.1中的机械图纸显示了TGAM1的尺寸和主要部件。右上角和左下角有两个安装孔。它们可以用来将TGAM1固定到您的系统外壳中。
 
 ![avater](img/drawing.png)
 
-Figure 4.1: Mechanical Drawing & Thickness
+Figure 4.1: 原理图 & 厚度
 
-# TGAM Communication Protocol
+## TGAM通信协议
 
-## Introduction
+### 前言
 
-ThinkGear™ is the technology inside every NeuroSky product or partner product that enables a device
-to interface with the user's brainwaves. ThinkGear includes the sensor that touches the forehead, the
-contact and reference points located on the ear pad, and the onboard chip that processes all of the data
-and provides this data to software and applications in digital form. Both the raw brainwaves and the
-eSense Meters (Attention and Meditation) are calculated on the ThinkGear chip.
-The MindSet™ headset incorporatesThinkGear technology in a convenient, stylish headset form factor,
-complete with Bluetooth audio and microphone.
-This MindSet Communications Protocol document defines, in detail, how to communicate with the
-MindSet. In particular, it describes:
-• How to connect to the Bluetooth serial data stream to receive a stream of bytes.
-• How to parse the serial data stream of bytes to reconstruct the various types of brainwave data
-sent by the MindSet
-• How to interpret and use the various types of brainwave data that are sent from the ThinkGear
-(including Attention, Meditation, and signal quality data) in a BCI application
-TheThinkGear Data Values chapter defines the types of Data Values that can be reported byThinkGear
-in a MindSet. It is highly recommended that you read this section to familiarize yourself with which
-kinds of Data Values are (and aren't) available from MindSet before continuing to later chapters.
-The ThinkGear Packets chapter describes the ThinkGear Packet format used to deliver the ThinkGear
-Data Values over the serial I/O stream.
+ThinkGear™ 是每个NeuroSky产品或合作伙伴产品中的技术，使设备能够与用户的脑电波接口。ThinkGear包括触摸前额的传感器、位于耳垫上的触点和参考点，以及处理所有数据并以数字形式向软件和应用程序提供这些数据的车载芯片。原始脑电波和eSenseMeter（注意力和冥想）都是在ThinkGear芯片上计算的。
 
-## Bluetooth Interface
+The MindSet™ 耳机结合ThinkGear技术在一个方便，时尚的耳机形式因素，完成蓝牙音频和麦克风。
 
-The MindSet transmits ThinkGear Data Values, encoded within ThinkGear Packets, as a serial stream
-of bytes over Bluetooth via a standard Bluetooth Serial Port Proíle (SPP):
-• Bluetooth Profile: Serial Port Profile (SPP)
-• Baud Rate: 57600
-• Authentication key: 0000
-Please refer to the MindSet Quick Start Guide and/or MindSet Instruction Manual that accompanied
-your MindSet for instructions on how to pair the MindSet to your Windows or Mac computer via
-SPP using Bluetooth drivers and Bluetooth stacks available for those platforms. For information on
-pairing the MindSet via SPP on other platforms, please refer to your platform's documentation, and
-to the SPP specifications that can be found on the Web.
+此Mind Set通信协议文档详细定义了如何与Mind Set通信。它特别描述了：
 
-## ThinkGear Data Values
+- 如何连接到蓝牙串行数据流接收字节流.
+- 如何解析字节的串行数据流来重构各种类型的脑电波数据 Mind Set发送
+- 如何在BCI应用程序中解释和使用从ThinkGear发送的各种类型的脑电波数据（包括注意力、冥想和信号质量数据）
+- ThinkGear数据值一章定义了ThinkGear可以在Mind Set中报告的数据值的类型。强烈建议您阅读本节，以熟悉哪些数据值可以从MindSet获得（而不是），然后再继续到后面的章节。 ThinkGear数据包章节描述了用于在串行I/O流上传递ThinkGear数据值的ThinkGear数据包格式。
+
+### 蓝牙接口
+
+Mind Set通过标准蓝牙串行端口Proile（SPP）将ThinkGear数据值（编码在ThinkGear分组中）作为串行字节流通过蓝牙传输：
+
+- 蓝牙配置文件：串口配置文件（SPP）
+- 波特率：57600
+- 认证密钥：0000
+
+请参阅Mind Set快速启动指南和/或Mind Set指令手册，其中说明如何通过SPP将Mind Set与您的Windows或Mac计算机配对，使用蓝牙驱动程序和这些平台可用的蓝牙堆栈。有关通过SPP在其他平台上配对Mind Set的信息，请参阅平台的文档，以及到SPP规范，可以在Web上找到。
+
+## ThinkGear数值
 
 ### POOR_SIGNAL Quality
 
-This unsigned one-byte integer value describes how poor the signal measured by the ThinkGear is. It
-ranges in value from 0 to 200. Any non-zero value indicates that some sort of noise contamination is
-detected. The higher the number, the more noise is detected. A value of 200 has a special meaning,
-specifically that the ThinkGear contacts are not touching the user's skin.
-This value is typically output every second, and indicates the poorness of the most recent measure-
-ments.
-Poor signal may be caused by a number of different things. In order of severity, they are:
-• Sensor, ground, or reference contacts not being on a person's head (i.e. when nobody is wearing
-the ThinkGear).
-• Poor contact of the sensor, ground, or reference contacts to a person's skin (i.e. hair in the way,
-or headset which does not properly fit a person's head, or headset not properly placed on the
-head).
-• Excessive motion of the wearer (i.e. moving head or body excessively, jostling the headset).
-• Excessive environmental electrostatic noise (some environments have strong electric signals or
-static electricity buildup in the person wearing the sensor).
-• Excessive non-EEG biometric noise (i.e. EMG, EKG/ECG, EOG, etc)
-A certain amount of noise is unavoidable in normal usage of ThinkGear, and both NeuroSky's filter-
-ing technology and eSense™ algorithm have been designed to detect, correct, compensate for, account
-for, and tolerate many types of non-EEG noise. Most typical users who are only interested in us-
-ing the eSense values, such as Attention and Meditation, do not need to worry too much about the
-POOR_SIGNAL Quality value, except to note that the Attention and Meditation values will not be
-updated while POOR_SIGNAL is detected. The POOR_SIGNAL Quality value is more useful to some
-applications which need to be more sensitive to noise (such as some medical or research applications),
-or applications which need to know right away when there is even minor noise detected.
-By default, output of this Data Value is enabled. It is typically output once a second.
+这个无符号的一字节整数值描述了ThinkGear测量的信号有多差。它的价值范围从0到200。任何非零值都表示检测到某种噪声污染。数越高，检测到的噪声越多..一个值200有一个特殊的含义，特别是ThinkGear接触不接触用户的皮肤。此值通常每秒输出一次，并表示最近测量的差。
 
-### eSense™ Meters
+信号不佳可能是由许多不同的事情引起的。严重程度依次为：
 
-For all the different types of eSenses (i.e. Attention, Meditation), the meter value is reported on a
-relative eSense scale of 1 to 100. On this scale, a value between 40 to 60 at any given moment in time
-is considered "neutral", and is similar in notion to "baselines" that are established in conventional EEG
-measurement techniques (though the method for determining a ThinkGear baseline is proprietary and
-may differ from conventional EEG). A value from 60 to 80 is considered "slightly elevated", and may
-be interpreted as levels being possibly higher than normal (levels of Attention or Meditation that may
-be higher than normal for a given person). Values from 80 to 100 are considered "elevated", meaning
-they are strongly indicative of heightened levels of that eSense.
-Similarly, on the other end of the scale, a value between 20 to 40 indicates "reduced" levels of the
-eSense, while a value between 1 to 20 indicates "strongly lowered" levels of the eSense. These levels
-may indicate states of distraction, agitation, or abnormality, according to the opposite of each eSense.
-An eSense meter value of 0 is a special value indicating the ThinkGear is unable to calculate an eSense
-level with a reasonable amount of reliability. This may be (and usually is) due to excessive noise as
-described in the POOR_SIGNAL Quality section above.
-The reason for the somewhat wide ranges for each interpretation is that some parts of the eSense
-algorithm are dynamically learning, and at times employ some "slow-adaptive" algorithms to adjust
-to natural ìuctuations and trends of each user, accounting for and compensating for the fact that
-EEG in the human brain is subject to normal ranges of variance and ìuctuation. This is part of the
-reason why ThinkGear sensors are able to operate on a wide range of individuals under an extremely
-wide range of personal and environmental conditions while still giving good accuracy and reliability.
-Developers are encouraged to further interpret and adapt these guideline ranges to be fine-tuned for
-their application (as one example, an application could disregard values below 60 and only react to
-values between 60-100, interpreting them as the onset of heightened attention levels).
+- 不在人的头上的传感器、地面或参考联系人。当没有人穿ThinkGear的时候）。
+- 传感器、地面或参考触点与人的皮肤接触不良（即。头发，或耳机，不适合一个人的头，或耳机没有正确地放置在头上）。
+- 佩戴者的过度运动（即。过度移动头部或身体，推挤耳机）。过度的环境静电噪声（一些环境中有强烈的电信号或静电积聚在佩戴传感器的人身上）。
+- 过度的非EEG生物识别噪声（即。EMG，EKG/ECG，EOG等）
+
+在ThinkGear的正常使用中，一定数量的噪声是不可避免的，NeuroSky的滤波技术和eSenseTM算法都被设计用来检测、纠正、补偿、解释和容忍多种类型的非EEG噪声。大多数只对使用eSense值感兴趣的典型用户，如注意力和冥想，不需要太担心POOR_IGNA L质量值，只需注意，在检测POOR_IGNA L时，注意力和冥想值不会被更新。对于一些需要对噪声更敏感的应用（如某些医学或研究应用），或当检测到甚至是轻微的噪声时需要立即知道的应用，POOR_SIGNAL质量值更有用。
+
+默认情况下，启用此数据值的输出。它通常每秒输出一次。
+
+### eSense™计量器
+
+对于所有不同类型的eSenses（即。注意，冥想），仪表值是在1到100的相对密度尺度上报告的。在这一尺度上，在任何给定的时间时刻，40至60之间的值被认为是“中性的”，在概念上类似于传统的脑电图测量技术中确定的“基线”（尽管确定ThinkGear基线的方法是专有的，可能与传统的脑电图不同）。从60到80的值被认为是“略有升高”，可以解释为可能高于正常水平（对某人来说可能高于正常的注意力或冥想水平）。从80到100的值被认为是“升高”的，这意味着它们强烈地表明了该e Sense的高度。
+
+同样，在比额表的另一端，20至40之间的数值表示eSense的“降低”水平，1至20之间的数值表示eSense的“强烈降低”水平。这些水平可能表示分心、激动或异常状态，根据每个eSense的相反情况。一个eSense米值为0是一个特殊的值，表明ThinkGear无法以合理的可靠性计算一个eSense级别。这可能是（而且通常是）由于过多的噪音，如上面POOR_signal质量部分所描述的。
+
+每种解释的范围略宽的原因是，eSense算法的一些部分是动态学习的，有时使用一些“慢适应”算法来适应每个用户的自然变化和趋势，从而考虑和补偿人脑中的脑电图受到正常方差和变化范围的影响。这是为什么ThinkGear传感器能够在非常广泛的个人和环境条件下对广泛的个人进行操作，同时仍然提供良好的准确性和可靠性。
+
+鼓励开发人员进一步解释和调整这些准则范围，以便对其应用程序进行微调（例如，应用程序可以忽略低于60的值，并且只对60-100之间的值作出反应，将其解释为开始提高注意力水平）。
 
 ### ATTENTION eSense
 
-This unsigned one-byte value reports the current eSense Attention meter of the user, which indi-
-cates the intensity of a user's level of mental "focus" or "attention", such as that which occurs during
-intense concentration and directed (but stable) mental activity. Its value ranges from 0 to 100. Dis-
-tractions, wandering thoughts, lack of focus, or anxiety may lower the Attention meter levels. See
-eSense\texttrademark Meters above for details about interpreting eSense levels in general.
-By default, output of this Data Value is enabled. It is typically output once a second.
+这个未签名的一字节值报告用户当前的eSenseAttentionmeter，它表示用户的精神“专注”或“注意”水平的强度，例如在强烈集中和定向（但稳定）的精神活动期间发生的强度。其值从0到100不等..分心、走神、注意力不集中或焦虑可能会降低注意力的水平。有关解释一般的eSense级别的详细信息，请参阅上面的eSense\text Trademark Meter。
+
+默认情况下，启用此数据值的输出。它通常每秒输出一次。
 
 ### MEDITATION eSense
 
-This unsigned one-byte value reports the current eSense Meditation meter of the user, which indicates
-the level of a user's mental "calmness" or "relaxation". Its value ranges from 0 to 100. Note that
-Meditation is a measure of a person's mental levels, not physical levels, so simply relaxing all the
-muscles of the body may not immediately result in a heightened Meditation level. However, for
-most people in most normal circumstances, relaxing the body often helps the mind to relax as well.
-Meditation is related to reduced activity by the active mental processes in the brain, and it has long
-been an observed effect that closing one's eyes turns off the mental activities which process images
-from the eyes, so closing the eyes is often an effective method for increasing the Meditation meter level.
-Distractions, wandering thoughts, anxiety, agitation, and sensory stimuli may lower the Meditation
-meter levels. See "eSense Meters" above for details about interpreting eSense levels in general.
-By default, output of this Data Value is enabled. It is typically output once a second.
+这个未签名的一字节值报告用户当前的eSense冥想仪，它表示用户的心理“平静”或“放松”的水平。其值从0到100不等..请注意，冥想是衡量一个人的心理水平，而不是身体水平，所以简单地放松身体的所有肌肉可能不会立即导致冥想水平的提高。然而，对于大多数正常情况下的人来说，放松身体往往也有助于大脑放松。
+
+冥想与大脑中活跃的心理过程减少活动有关，长期以来一直观察到的一种效果是，闭上眼睛会关闭处理眼睛图像的心理活动，因此闭上眼睛往往是提高冥想仪水平的有效方法。
+
+分心、走神、焦虑、激动和感官刺激可能降低冥想仪的水平。有关解释一般eSense水平的详细信息，请参阅上面的“eSenseMeters”。
+
+默认情况下，启用此数据值的输出。它通常每秒输出一次。
 
 ### RAW Wave Value (16-bit)
 
-This Data Value consists of two bytes, and represents a single raw wave sample. Its value is a signed
-16-bit integer that ranges from -32768 to 32767. The first byte of the Value represents the high-order
-bits of the twos-compliment value, while the second byte represents the low-order bits. To reconstruct
-the full raw wave value, simply shift the first byte left by 8 bits, and bitwise-or with the second byte:
+此数据值由两个字节组成，并表示单个原始波样本。它的值是一个有符号的16位整数，范围从-32768到32767..值的第一个字节表示两个运算值的高阶位，而第二个字节表示低阶位。要重建完整的原始波值，只需将第一个字节向左移动8位，然后按位移动或者用第二个字节：
+
 RAW Wave Value (16-bit)
 
+```C
 short raw = (Value[0]<<8) | Value[1];
-where Value[0] is the high-order byte, and Value[1] is the low-order byte.
-In systems or languages where bit operations are inconvenient, the following arithmetic operations
-may be substituted instead:
+```
+
+其中Value[0]是高阶字节，Value[1]是低阶字节。
+
+在位操作不方便的系统或语言中，可以替换以下算术操作：
+
+```C
 raw = Value[0]*256 + Value[1];
 if( raw >= 32768 ) raw = raw - 65536;
-where raw is of any signed number type in the language that can represent all the numbers from
--32768 to 32767.
-Each ThinkGear model reports its raw wave information in only certain areas of the full -32768 to
-32767 range. For example, MindSet reports raw waves that fall between approximately -2048 to 2047.
-By default, output of this Data Value is enabled, and is outputed 512 times a second, or approximately
-once every 2ms.
+```
+
+其中RAW是语言中的任何有符号数字类型，可以表示从-32768到32767的所有数字。
+
+每个ThinkGear模型只在-32768到32767范围的某些区域报告其原始波信息。例如，Mind Set报告了大约在-2048到2047之间的原始波。
+
+默认情况下，此数据值的输出被启用，并且每秒输出512次，或者大约每2ms输出一次。
 
 ### ASIC_EEG_POWER
 
-This Data Value represents the current magnitude of 8 commonly-recognized types of EEG (brain-
-waves). This Data Value is output as a series of eight 3-byte unsigned integers in little-endian for-
-mat. The eight EEG powers are output in the following order: delta (0.5 - 2.75Hz), theta (3.5 -
-6.75Hz), low-alpha (7.5 - 9.25Hz), high-alpha (10 - 11.75Hz), low-beta (13 - 16.75Hz), high-beta
-(18 - 29.75Hz), low-gamma (31 - 39.75Hz), and mid-gamma (41 - 49.75Hz). These values have no
-units and therefore are only meaningful compared to each other and to themselves, to consider relative
-quantity and temporal ìuctuations.
-By default, output of this Data Value is enabled, and is typically output once a second.
+这个数据值代表了当前8种公认类型的脑电波（脑波）的大小.
+
+此数据值以小Endian格式作为八个3字节无符号整数的系列输出..八种脑电功率依次输出：
+δ（0.5-2.75Hz），
+θ（3.5-6.75Hz），
+低α（7.5-9.25Hz），
+高α（10-11.75Hz），
+低β（13-16.75Hz），
+高β（18-29.75Hz），
+低伽马（31-39.75Hz），
+中伽马（41-49.75Hz）.
+这些值没有任何单位，因此与彼此和自己相比，只是有意义的，以考虑相对的数量和时间变化。
+
+默认情况下，此数据值的输出是启用的，通常每秒输出一次。
 
 ### Blink Strength
 
-This unsigned one byte value reports the intensity of the user's most recent eye blink. Its value ranges
-from 1 to 255 and it is reported whenever an eye blink is detected. The value indicates the relative
-intensity of the blink, and has no units.
-Note: This data value is currently only available via the TGCD and TGC APIs. It is
-not directly available as output from any current ThinkGear hardware. For TGCD, see the
-TG_DATA_BLINK_STRENGTH data type for use with the TG_GetValueStatus() and TG_GetValue()
-functions.
+这个无符号的一个字节值报告用户最近眨眼的强度。它的值范围从1到255，每当检测到眨眼时就会报告。该值表示眨眼的相对强度，没有单位。
+
+注：此数据值目前只能通过TGCD和TGCAPI获得。是的不能直接作为输出从任何当前的ThinkGear硬件。有关TGCD，请参阅用于TG_Get Value Status（）和TG_Get Value（）的数据类型职能。
 
 ## ThinkGear Packets
 
-ThinkGear components deliver their digital data as an asynchronous serial stream of bytes. The serial
-stream must be parsed and interpreted as ThinkGear Packets in order to properly extract and interpret
-the ThinkGear Data Values described in the chapter above.
-A ThinkGear Packet is a packet format consisting of 3 parts:
+ThinkGear组件将其数字数据作为字节的异步串行流传送。串行流必须被解析和解释为ThinkGear分组，以便正确地提取和解释上面一章中描述的ThinkGear数据值。 ThinkGear分组是一种分组格式，由三部分组成：
+
 1. Packet Header
 2. Packet Payload
 3. Payload Checksum
 
-ThinkGear Packets are used to deliver Data Values (described in the previous chapter) from aThinkGear
-module to an arbitrary receiver (a PC, another microprocessor, or any other device that can receive a
-serial stream of bytes). Since serial I/O programming APIs are different on every platform, operating
-system, and language, it is outside the scope of this document (see your platform's documentation for
-serial I/O programming). This chapter will only cover how to interpret the serial stream of bytes into
-ThinkGear Packets, Payloads, and finally into the meaningful Data Values described in the previous
-chapter.
+使用ThinkGear分组将数据值（在上一章中描述）从ThinkGear模块传递到任意接收器（PC、另一个微处理器或任何其他可以接收字节流的设备）。由于串行I/O编程API在每个平台、操作系统和语言上都是不同的，因此它超出了本文档的范围（参见您平台的串行I/O编程文档）。本章将只讨论如何将字节流解释为ThinkGear分组、Payload，最后解释为上一章中描述的有意义的数据值。
 
-The Packet format is designed primarily to be robust and ìexible: Combined, the Header and Check-
-sum provide data stream synchronization and data integrity checks, while the format of the Data
-Payload ensures that new data fields can be added to (or existing data fields removed from) the Packet
-in the future without breaking any Packet parsers in any existing applications/devices. This means that
-any application that implements a ThinkGear Packet parser properly will be able to use newer models
-of ThinkGear modules most likely without having to change their parsers or application at all, even if
-the newer ThinkGear hardware includes new data fields or rearranges the order of the data fields.
+数据包格式的设计主要是为了健壮和易用：结合起来，Header和Check-sum提供数据流同步和数据完整性检查，而Data Payload的格式则确保在未来可以将新的数据字段添加到（或从数据包中删除的现有数据字段）中，而不会破坏任何现有应用程序/设备中的数据包解析器。这意味着，任何正确实现ThinkGear分组解析器的应用程序都将能够使用较新的ThinkGear模块模型，而无需更改它们的解析器或应用程序，即使较新的ThinkGear硬件包含新的数据字段或重新排列数据字段的顺序。
 
 ### Packet Structure
 
@@ -424,7 +406,7 @@ if some CODEs are not always transmitted in every Packet.
 A procedure for properly parsing Packets and DataRows is given below in Step-By-Step Guide to
 Parsing a Packet and Step-By-Step Guide to Parsing DataRows in a Packet Payload, respectively.
 
-#### CODE Definitions Table
+#### 编码定义表
 
 Single-Byte CODEs
 
@@ -451,18 +433,14 @@ low-gamma, and mid-gamma EEG band
 power values
 Any 0x55 - NEVER USED (reserved for [EXCODE])
 Any 0xAA - NEVER USED (reserved for [SYNC])
-(any Extended Code Level/CODE combinations not listed in the table above have not yet been defined,
-but may be added at any time in the future)
-For detailed explanations of the meanings of each type of Data Value, please refer to the chapter on
-ThinkGear Data Values.
+(any Extended Code Level/CODE combinations not listed in the table above have not yet been defined,but may be added at any time in the future)
+For detailed explanations of the meanings of each type of Data Value, please refer to the chapter on ThinkGear Data Values.
 
-## Example Packet
+## 示例包
 
-The following is a typical packet. Aside from the [SYNC], [PLENGTH], and [CHKSUM] bytes, all the
-other bytes (bytes [ 3] to [34]) are part of the Packet's Data Payload. Note that the DataRows
-within the Payload are not guaranteed to appear in every Packet, nor are any DataRows that do appear
-guaranteed by the Packet specification to appear in any particular order.
-```
+以下是一个典型的数据包。除了[SYNC]、[PLENGTH]和[CHKSUM]字节之外，所有其他字节（字节[3]到[34]）都是分组数据有效负载的一部分。请注意，有效负载中的DataRow不保证出现在每个分组中，也不保证出现在分组规范中的任何DataRow以任何特定顺序出现。
+
+```C
 byte: value // [CODE] Explanation
 
 [ 0]: 0xAA // [SYNC]
@@ -538,50 +516,58 @@ byte: value // [CODE] Explanation
 [35]: 0x34 // [CHKSUM] (1's comp inverse of 8-bit Payload sum of 0xCB)
 ```
 
-### Step-By-Step Guide to Parsing a Packet
+### 一步一步分析数据包指南
 
-1. Keep reading bytes from the stream until a [SYNC] byte (0xAA) is encountered.
-2. Read the next byte and ensure it is also a [SYNC] byte
-• If not a [SYNC] byte, return to step 1.
-• Otherwise, continue to step 3.
-3. Read the next byte from the stream as the [PLENGTH].
-• If [PLENGTH] is 170 ([SYNC]), then repeat step 3.
-• If [PLENGTH] is greater than 170, then return to step 1 (PLENGTH TOO LARGE).
-• Otherwise, continue to step 4.
-4. Read the next [PLENGTH] bytes of the [PAYLOAD…] from the stream, saving them into a storage
+1. 继续从流中读取字节，直到遇到[SYNC]字节（0xAA）。
+
+2. 读取下一个字节，并确保它也是[SYNC]字节
+
+- 如果不是[SYNC]字节, 回到第一步；
+- 否则，继续第3步
+
+3. 从流中读取下一个字节为[PLENGTH]。
+
+- If [PLENGTH] is 170 ([SYNC]), then repeat step 3.
+- If [PLENGTH] is greater than 170, then return to step 1 (PLENGTH TOO LARGE).
+- Otherwise, continue to step 4.
+
+1. Read the next [PLENGTH] bytes of the [PAYLOAD…] from the stream, saving them into a storage
 area (such as an unsigned char payload[256] array). Sum up each byte as it is read by
 incrementing a checksum accumulator (checksum += byte).
 
 5. Take the lowest 8 bits of the checksum accumulator and invert them. Here is the C code:
+
+```C
 checksum &= 0xFF;
 checksum = ~checksum & 0xFF;
+```
 
-6. Read the next byte from the stream as the[CHKSUM] byte.
+1. Read the next byte from the stream as the[CHKSUM] byte.
 • If the [CHKSUM] does not match your calculated chksum (CHKSUM FAILED).
 • Otherwise, you may now parse the contents of the Payload into DataRows to obtain the
 Data Values, as described below.
 • In either case, return to step 1.
 
-### Step-By-Step Guide to Parsing DataRows in a Packet Payload
+### 数据包有效负载中数据路的分步解析指南
 
-Repeat the following steps for parsing a DataRow until all bytes in the payload[] array ([PLENGTH]
-bytes) have been considered and parsed:
-1. Parse and count the number of [EXCODE] (0x55) bytes that may be at the beginning of the
-current DataRow.
-2. Parse the [CODE] byte for the current DataRow.
-3. If [CODE] >= 0x80, parse the next byte as the [VLENGTH] byte for the current DataRow.
-4. Parse and handle the [VALUE…] byte(s) of the current DataRow, based on the DataRow's [EX-
-CODE] level, [CODE], and [VLENGTH] (refer to the Code Definitions Table).
-5. If not all bytes have been parsed from the payload[] array, return to step 1. to continue parsing
-the next DataRow.
+重复以下步骤解析DataRow，直到考虑并解析了有效载荷数组中的所有字节（[PLENGTH]字节）：
 
-### Sample C Code for Parsing a Packet
+1. 解析并计数可能位于当前DataRow开头的[EXCODE]（0x55）字节数。
 
-The following is an example of a program, implemented in C, which reads from a stream and (correctly)
-parses Packets continuously. Search for the word TODO for the two sections which would need to
-be modified to be appropriate for your application.
-Note: For simplicity, error checking and handling for standard library function calls have been omit-
-ted. A real application should probably detect and handle all errors gracefully.
+2. 解析当前DataRow的[CODE]字节。
+
+3. 如果[CODE]<=0x80，则将下一个字节解析为当前DataRow的[V LENGTH]字节。
+
+4. 解析并处理当前DataRow的[Value...]字节，基于DataRow的[EX-CODE]级别、[CODE]和[VLength]（请参阅代码定义表）。
+
+5. 如果不是所有字节都已从有效载荷[]数组中解析，请返回到步骤1.继续解析下一个DataRow。
+
+### 数据包解析样本C代码
+
+下面是一个程序的例子，在C中实现，它从流读取，并（正确）连续解析数据包。为两个部分搜索TODO这个词，这两个部分需要修改，以适合您的应用程序。
+
+注意：为了简单起见，省略了标准库函数调用的错误检查和处理。一个真正的应用程序可能应该优雅地检测和处理所有错误。
+
 ```C++
 #include <stdio.h>
 #define SYNC 0xAA
@@ -668,26 +654,22 @@ int main( int argc, char **argv )
 
 ### ThinkGearStreamParser C API
 
-The ThinkGearStreamParser API is a library which implements the parsing procedure described above
-and abstracts it into two simple functions, so that the programmer does not need to worry about
-parsing Packets and DataRows at all. All that is left is for the programmer to get the bytes from the
-data stream, stuff them into the parser, and then define what their program does with the Value[]
-bytes from each DataRow that is received and parsed.
-The source code for the ThinkGearStreamParser API is provided as part of the MindSet Development
-Tools (MDT), and consists of a .h header file and a .c source file. It is implemented in pure ANSI C
-for maximum portability to all platforms (including microprocessors).
-Using the API consists of 3 steps:
-1. Define a data handler (callback) function which handles (acts upon) Data Values as they're
-received and parsed.
-2. Initialize a ThinkGearStreamParser struct by calling the THINKGEAR_initParser() func-
-tion.
-3. As each byte is received from the data stream, the program passes it to the THINKGEAR_parseByte()
-function. This function will automatically call the data handler function defined in 1) whenever
-a Data Value is parsed.
-The following subsections are excerpts from the ThinkGearStreamParser.h header file, which serves
-as the API documentation.
+这个ThinkGear Stream ParserAPI是一个库，它实现了上面描述的解析过程，并将其抽象成两个简单的函数，这样程序员就不需要担心解析数据包和DataRow了。剩下的就是程序员从数据流中获取字节，将它们放入解析器中，然后定义它们的程序对Value[]的处理来自接收和解析的每个DataRow的字节。
 
-Constants
+ThinkGear Stream Parser API的源代码是作为Mind Set开发工具（MDT）的一部分提供的，由.h头文件和.c源文件组成。它是在纯ANSIC中实现的，以最大限度地向所有平台（包括微处理器）可移植性。
+
+使用API包括三个步骤：
+
+1. 定义一个数据处理程序（回调）函数，它处理（立刻）被接收和解析数据值，因为它们。
+
+2. 通过调用THIN KGEA R_init Parser（）函数初始化ThinkGear Stream Parser结构。
+
+3. 当从数据流接收到每个字节时，程序将其传递给THIN KGEA R_parseByte（）函数。每当解析数据值时，此函数将自动调用1）中定义的数据处理程序函数。
+
+下面的小节是ThinkGear Stream Parser.h头文件的摘录，该文件提供服务作为API文档。
+
+#### 常量
+
 ```C++
 /* Parser types */
 #define PARSER_TYPE_NULL 0x00
@@ -741,9 +723,9 @@ int
 THINKGEAR_parseByte( ThinkGearStreamParser *parser, unsigned char byte );
 ```
 
-Example
-Here is an example program using the ThinkGearStreamParser API. It is very similar to the example
-program described above, simply printing received Data Values to stdout:
+#### 示例
+
+下面是一个使用ThinkGear Stream Parser API的示例程序。它和这个例子非常相似上述程序，只需将接收到的数据值打印到stdout：
 
 ```C
 #include <stdio.h>
@@ -805,16 +787,16 @@ main( int argc, char **argv ) {
 
 注意事项:
 
-• The handleDataValueFunc() callback should be implemented to execute quickly, so as not to block the thread which is reading from the data stream. A more robust (and useful) program would probably spin off the thread which reads from the data stream and calls handleDataValueFunc(), and define handleDataValueFunc() to simply save the Data Values it receives, while the main thread actually uses the saved values for displaying to screen, controlling a game, etc. Threading is outside the scope of this manual.
-• The code for opening a serial communication port data stream for reading varies by operating system and platform. Typically, it is very similar to opening a normal file for reading. Serial communication is outside the scope of this manual, so please consult the documentation for "Serial I/O" for your platform for details. As an alternative, you may use the ThinkGear
-Communications Driver (TGCD) API, which can take care of opening and reading from serial I/O streams on some platforms for you. Use of that interface is described in the developer\_tools\_2.1\_development\_guide and TGCD API documentation.
-• Most error handling has been omitted from the above code for clarity. A properly written program should check all error codes returned by functions. Please consult the ThinkGearStreamParser.h header file for details about function parameters and return values.
+- handleDataValueFunc() 回调函数应该实现快速执行，以免阻塞从数据流读取的线程。一个更健壮（也更有用）的程序可能会剥离从数据流读取的线程并调用handleDataValueFunc（），并定义handleDataValueFunc（）来简单地保存它接收到的数据值，而主线程实际上使用保存的值来显示屏幕、控制游戏等。线程不在本手册的范围内。
+- 用于读取的串行通信端口数据流的打开代码因操作系统和平台的不同而不同。通常，它非常类似于打开一个正常的文件进行读取。串行通信不在本手册的范围内，因此请查阅“串行I/O”的文档，以了解您的平台的详细信息。作为一种选择，你可以使用ThinkGear
+- 通信驱动程序（TGCD）API可以为您处理从某些平台上的串行I/O流打开和读取。该接口的使用在developer\_tools\_2.1\_development\_guide开发指南和TGCDAPI文档中描述。
+- 为了清晰起见，从上面的代码中省略了大多数错误处理。正确编写的程序应该检查函数返回的所有错误代码。有关函数参数和返回值的详细信息，请参阅ThinkGear Stream Parser.h头文件。
 
-# Connecting
+## Connecting
 
 ![avater](img/connecting.png)
 
-# Data
+## Data
 
 ![avate](img/data.png)
 
@@ -826,7 +808,7 @@ TGAM大约每秒钟发送513个包，注意是“大约每秒钟”，意思就�
 
 小包的格式是
 
-```
+```C
 AA AA 04 80 02 xxHigh xxLow xxCheckSum
 ```
 
@@ -834,7 +816,7 @@ AA AA 04 80 02 xxHigh xxLow xxCheckSum
 
 那怎么从小包中解析出原始数据呢？
 
-```
+```C
 rawdata = (xxHigh << 8) | xxLow;
 if( rawdata > 32768){
      rawdata =65536; 
@@ -844,9 +826,11 @@ if( rawdata > 32768){
 现在原始数据就这么算出来了，但是在算原始数据之前，我们先应该检查校验和。
 
 校验和怎么算呢？
-```
+
+```C
 sum = ((0x80 + 0x02 + xxHigh + xxLow)^ 0xFFFFFFFF) & 0xFF
 ```
+
 什么意思呢？
 
 就是把04后面的四个字节加起来，取反，再取低八位。
@@ -932,16 +916,20 @@ CB HighBeta 2/3
 D5 校验和
 
 解析EEG Power：
+
 拿Delta举例，Delta 1/3是高字节，Delta 1/3是中字节，Delta 1/3是低字节；
+
 高字节左移16位，中字节左移8位，低字节不变，然后将他们或运算，得到的结果就是Delta的值。
+
 这些值是无符号，没有单位的，只有在和其他的Beta，Gamma等值相互比较时才有意义。
 
 ## 关于眨眼
+
 TGAM芯片本身是不会输出眨眼信号的，眨眼是用rawdata原始数据算出来的。表现在原始数据的波形上，眨眼就是一个很大的波峰。只要用代码检测这个波峰的出现，就可以找到眨眼的值了。此外，眨眼其实和脑电波一点儿关系都没有，眨眼只是眼睛动的时候在前额产生的肌（肉）电，混合在了脑波原始数据中。
 
 ## Build
 
-```
+```bash
 qmake
 make
 ```
