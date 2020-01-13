@@ -1,8 +1,8 @@
 # Outline
 
 - [Outline](#outline)
-- [Prepare](#prepare)
-- [TGAM specification](#tgam-specification)
+  - [Prepare](#prepare)
+  - [TGAM specification](#tgam-specification)
   - [General](#general)
   - [I/O pins](#io-pins)
   - [Serial Communication](#serial-communication)
@@ -42,13 +42,13 @@
   - [Build](#build)
   - [Version](#version)
 
-# Prepare
+## Prepare
 
-TGAM模块一个
+TGAM module
 
-蓝牙模块一个（必须，否则无法获取数据）
+Bluetooth module (important or you cannot retrive data)
 
-# TGAM specification
+## TGAM specification
 
 The MindSet transmits ThinkGear Data Values, encoded within thinkGear Packets, as a serial stream of bytes over Bluetooth via a standard Bluetooth Serial Port Profile (SPP):
 • Bluetooth Profile: Serial Port Profile (SPP)
@@ -56,7 +56,7 @@ The MindSet transmits ThinkGear Data Values, encoded within thinkGear Packets, a
 • Authentication key: 0000
 Please refer to the MindSet Quick Start Guide and/or MindSet Instruction Manual that accompanied your MindSet for instructions on how to pair the MindSet to your Windows or Mac computer via SPP using Bluetooth drivers and Bluetooth stacks available for those platforms. For information on pairing the MindSet via SPP on other platforms, please refer to your platform's documentation, and to the SPP specifications that can be found on the Web.
 
-## General 
+## General
 
 ![avater](img/specification.png)
 
@@ -77,7 +77,7 @@ Please refer to the MindSet Quick Start Guide and/or MindSet Instruction Manual 
 
 ***Check with NeuroSky Sales for price addition.***
 
-## I/O pins 
+## I/O pins
 
 ![avater](img/board-layout.png)
 
