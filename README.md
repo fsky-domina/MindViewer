@@ -21,14 +21,14 @@
     - [MEDITATION eSense](#meditation-esense)
     - [RAW Wave Value (16-bit)](#raw-wave-value-16-bit)
     - [ASIC_EEG_POWER](#asiceegpower)
-    - [Blink Strength](#blink-strength)
-  - [ThinkGear Packets](#thinkgear-packets)
-    - [Packet Structure](#packet-structure)
-    - [Packet Header](#packet-header)
-    - [Data Payload](#data-payload)
-    - [Payload Checksum](#payload-checksum)
-    - [Data Payload Structure](#data-payload-structure)
-    - [DataRow Format](#datarow-format)
+    - [眨眼强度](#%e7%9c%a8%e7%9c%bc%e5%bc%ba%e5%ba%a6)
+  - [ThinkGear数据包](#thinkgear%e6%95%b0%e6%8d%ae%e5%8c%85)
+    - [数据包结构](#%e6%95%b0%e6%8d%ae%e5%8c%85%e7%bb%93%e6%9e%84)
+    - [数据包头](#%e6%95%b0%e6%8d%ae%e5%8c%85%e5%a4%b4)
+    - [数据负载](#%e6%95%b0%e6%8d%ae%e8%b4%9f%e8%bd%bd)
+    - [负载校验](#%e8%b4%9f%e8%bd%bd%e6%a0%a1%e9%aa%8c)
+    - [数据负载结构](#%e6%95%b0%e6%8d%ae%e8%b4%9f%e8%bd%bd%e7%bb%93%e6%9e%84)
+    - [源数据格式](#%e6%ba%90%e6%95%b0%e6%8d%ae%e6%a0%bc%e5%bc%8f)
       - [编码定义表](#%e7%bc%96%e7%a0%81%e5%ae%9a%e4%b9%89%e8%a1%a8)
   - [示例包](#%e7%a4%ba%e4%be%8b%e5%8c%85)
     - [一步一步分析数据包指南](#%e4%b8%80%e6%ad%a5%e4%b8%80%e6%ad%a5%e5%88%86%e6%9e%90%e6%95%b0%e6%8d%ae%e5%8c%85%e6%8c%87%e5%8d%97)
@@ -39,10 +39,8 @@
       - [示例](#%e7%a4%ba%e4%be%8b)
   - [Connecting](#connecting)
   - [Data](#data)
-  - [小包](#%e5%b0%8f%e5%8c%85)
   - [关于眨眼](#%e5%85%b3%e4%ba%8e%e7%9c%a8%e7%9c%bc)
   - [Build](#build)
-  - [Version](#version)
 
 ## 准备
 
@@ -284,13 +282,13 @@ if( raw >= 32768 ) raw = raw - 65536;
 
 默认情况下，此数据值的输出是启用的，通常每秒输出一次。
 
-### Blink Strength
+### 眨眼强度
 
 这个无符号的一个字节值报告用户最近眨眼的强度。它的值范围从1到255，每当检测到眨眼时就会报告。该值表示眨眼的相对强度，没有单位。
 
 注：此数据值目前只能通过TGCD和TGCAPI获得。是的不能直接作为输出从任何当前的ThinkGear硬件。有关TGCD，请参阅用于TG_Get Value Status（）和TG_Get Value（）的数据类型职能。
 
-## ThinkGear Packets
+## ThinkGear数据包
 
 ThinkGear组件将其数字数据作为字节的异步串行流传送。串行流必须被解析和解释为ThinkGear分组，以便正确地提取和解释上面一章中描述的ThinkGear数据值。 ThinkGear分组是一种分组格式，由三部分组成：
 
@@ -302,109 +300,81 @@ ThinkGear组件将其数字数据作为字节的异步串行流传送。串行�
 
 数据包格式的设计主要是为了健壮和易用：结合起来，Header和Check-sum提供数据流同步和数据完整性检查，而Data Payload的格式则确保在未来可以将新的数据字段添加到（或从数据包中删除的现有数据字段）中，而不会破坏任何现有应用程序/设备中的数据包解析器。这意味着，任何正确实现ThinkGear分组解析器的应用程序都将能够使用较新的ThinkGear模块模型，而无需更改它们的解析器或应用程序，即使较新的ThinkGear硬件包含新的数据字段或重新排列数据字段的顺序。
 
-### Packet Structure
+### 数据包结构
 
-Packets are sent as an asynchronous serial stream of bytes. The transport medium may be UART, serial
-COM, USB, bluetooth, file, or any other mechanism which can stream bytes.
-Each Packet begins with its Header, followed by its Data Payload, and ends with the Payload's Check-
-sum Byte, as follows:
+数据包以字节的异步串行流的形式发送。传输介质可以是UART、串行COM、USB、蓝牙、文件或任何其他可以流字节的机制。
+
+每个数据包从其报头开始，然后是其数据有效负载，最后是有效负载的校验和字节，如下：
+
 ```
 [SYNC] [SYNC] [PLENGTH] [PAYLOAD...] [CHKSUM]
 _______________________ _____________ ____________
 ^^^^^^^^(Header)^^^^^^^ ^^(Payload)^^ ^(Checksum)^
 ```
 
-The [PAYLOAD…] section is allowed to be up to 169 bytes long, while each of [SYNC], [PLENGTH], and [CHKSUM] are a single byte each. This means that a complete, valid Packet is a minimum of 4 bytes long (possible if the Data Payload is zero bytes long, i.e. empty) and a maximum of 173 bytes long (possible if the Data Payload is the maximum 169 bytes long).
+[PAYLOAD...]节允许长达169个字节长，而[SYNC]、[PLENGTH]和[CHKSUM]中的每一个都是一个字节。这意味着一个完整的、有效的数据包至少有4个字节长（如果数据有效负载为零字节长，则可能）。空）和最大173字节长（如果数据有效负载是最大169字节长，则可能）。
 
-A procedure for properly parsing ThinkGear Packets is given below in Step-By-Step Guide to Parsing
-a Packet.
+下面在逐步分析数据包的指南中给出了一个正确解析ThinkGear分组的过程。
 
-### Packet Header
+### 数据包头
 
-The Header of a Packet consists of 3 bytes: two synchronization [SYNC] bytes (0xAA 0xAA), followed
-by a [PLENGTH] (Payload length) byte:
+数据包的报头由3个字节组成：两个同步[SYNC]字节（0x AA0xAA），然后是[PLENGTH]（有效负载长度）字节：
+
 ```
 [SYNC] [SYNC] [PLENGTH]
 _______________________
 ^^^^^^^^(Header)^^^^^^^
 ```
 
-The two [SYNC] bytes are used to signal the beginning of a new arriving Packet and are bytes with
-the value 0xAA (decimal 170). Synchronization is two bytes long, instead of only one, to reduce the
-chance that [SYNC] (0xAA) bytes occurring within the Packet could be mistaken for the beginning
-of a Packet. Although it is still possible for two consecutive [SYNC] bytes to appear within a Packet
-(leading to a parser attempting to begin parsing the middle of a Packet as the beginning of a Packet) the
-[PLENGTH] and [CHKSUM] combined ensure that such a "mis-sync'd Packet" will never be accidentally
-interpreted as a valid packet (see Payload Checksum below for more details).
-The [PLENGTH] byte indicates the length, in bytes, of the Packet's Data Payload [PAYLOAD…] section,
-and may be any value from 0 up to 169. Any higher value indicates an error (PLENGTH TOO LARGE).
-Be sure to note that [PLENGTH] is the length of the Packet's Data Payload, NOT of the entire Packet.
-The Packet's complete length will always be [PLENGTH] + 4.
+这两个[SYNC]字节用于发出新到达数据包的开始信号，并且是具有0xAA（十进制170）值的字节。同步是两个字节长，而不是只有一个字节长，以减少发生在分组中的[SYNC]（0xAA）字节可能被误认为是分组的开头的机会。虽然仍然有可能有两个连续的[同步]字节出现在数据包中（导致分析器试图开始将数据包的中间解析为数据包的开头），但[PLENGTH]和[CHKSUM]组合确保这样的“错误同步”数据包“永远不会意外地被解释为有效数据包（有关更多细节，请参见下面的Payload Checksum）。
 
-### Data Payload
+[PLENGTH]字节表示数据包的数据有效载[PAYLOAD...）的长度，以字节为单位，可以是从0到169的任何值。任何较高的值都表示错误（PLENGTH TOO大小）。
 
-The Data Payload of a Packet is simply a series of bytes. The number of Data Payload bytes in the
-Packet is given by the [PLENGTH] byte from the Packet Header. The interpretation of the Data Pay-
-load bytes into the ThinkGear Data Values described in Chapter 1 is defined in detail in the Data
-Payload Structure section below. Note that parsing of the Data Payload typically should not even be
-attempted until after the Payload Checksum Byte [CHKSUM] is verified as described in the following
-section.
+请注意，[PLENGTH]是数据包的数据有效负载的长度，而不是整个数据包的长度。包的完整长度将始终为[PLENGTH]4。
 
-### Payload Checksum
+### 数据负载
 
-The [CHKSUM] Byte must be used to verify the integrity of the Packet's Data Payload. The Payload's
-Checksum is defined as:
-1. summing all the bytes of the Packet's Data Payload
-2. taking the lowest 8 bits of the sum
-3. performing the bit inverse (one's compliment inverse) on those lowest 8 bits
-A receiver receiving a Packet must use those 3 steps to calculate the checksum for the Data Payload
-they received, and then compare it to the [CHKSUM] Checksum Byte received with the Packet. If the
-calculated payload checksum and received [CHKSUM] values do not match, the entire Packet should
-be discarded as invalid. If they do match, then the receiver may procede to parse the Data Payload as
-described in the "Data Payload Structure" section below.
-Packet Structure
+数据包的数据有效负载只是一系列字节。数据包中的数据有效载字节数由来自分组报头的[PLENGTH]字节给出。第1章中描述的将数据有效负载字节解释为ThinkGear数据值的解释在下面的数据有效负载结构部分中详细定义。请注意，数据有效负载的解析通常不应该尝试，直到有效负载校验和字节[CHKSUM]被验证后，如下节所述。
 
-### Data Payload Structure
+### 负载校验
 
-Once the Checksum of a Packet has been verified, the bytes of the Data Payload can be parsed. The
-Data Payload itself consists of a continuous series of Data Values, each contained in a series of bytes
-called a DataRow. Each DataRow contains information about what the Data Value represents, the
-length of the Data Value, and the bytes of the Data Value itself. Therefore, to parse a Data Payload,
-one must parse each DataRow from the Data Payload, until all bytes of the Data Payload have been
-parsed.
+必须使用[CHKSUM]字节来验证数据包的数据有效负载的完整性。有效载荷的校验和定义为：
 
-### DataRow Format
+1.求和数据包的数据有效负载的所有字节 
+2.取和的最低8位 
+3.在最低的8位上执行位逆（恭维逆）
 
-A DataRow consists of bytes in the following format:
+接收数据包的接收机必须使用这3个步骤来计算它们接收到的数据有效负载的校验和，然后将其与与分组接收的[CHKSUM]校验和字节进行比较。如果计算的有效载荷校验和与接收的[CHKSUM]值不匹配，则整个数据包应作为无效丢弃。如果它们是匹配的，那么接收方可以按照下面的“数据有效负载结构”部分的描述来解析数据有效负载。
+
+### 数据负载结构
+
+一旦验证了数据包的校验和，就可以解析数据有效负载的字节。数据有效负载本身由一系列连续的数据值组成，每个数据值包含在一系列称为DataRow的字节中。每个DataRow包含有关数据值代表什么、数据值的长度和数据值本身的字节的信息。因此，要解析数据有效负载，必须从数据有效负载中解析每个DataRow，直到数据有效负载的所有字节都被解析为止。
+
+### 源数据格式
+
+DataRow由以下格式的字节组成：
+
+```
 ([EXCODE]...) [CODE] ([VLENGTH]) [VALUE...]
 ____________________ ____________ ___________
 ^^^^(Value Type)^^^^ ^^(length)^^ ^^(value)^^
-Note: Bytes in parentheses are conditional, meaning that they only appear in some DataRows, and
-not in others. See the following description for details.
-The DataRow may begin with zero or more [EXCODE] (Extended Code) bytes, which are bytes with
-the value 0x55. The number of [EXCODE] bytes indicates the Extended Code Level. The Extended
-Code Level, in turn, is used in conjuction with the [CODE] byte to determine what type of Data
-Value this DataRow contains. Parsers should therefore always begin parsing a DataRow by counting
-the number of [EXCODE] (0x55) bytes that appear to determine the Extended Code Level of the
-DataRow's [CODE].
-The [CODE] byte, in conjunction with the Extended Code Level, indicates the type of Data Value
-encoded in the DataRow. For example, at Extended Code Level 0, a [CODE] of 0x04 indicates that
-the DataRow contains an eSense Attention value. For a list of defined [CODE] meanings, see the
-CODE Definitions Table below. Note that the [EXCODE] byte of 0x55 will never be used as a [CODE]
-(incidentally, the [SYNC] byte of 0xAA will never be used as a [CODE] either).
-If the [CODE] byte is between 0x00 and 0x7F, then the the [VALUE…] is implied to be 1 byte long
-(referred to as a Single-Byte Value). In this case, there is no [VLENGTH] byte, so the single [VALUE]
-byte will appear immediately after the [CODE] byte.
-If, however, the [CODE] is greater than 0x7F, then a [VLENGTH] ("Value Length") byte immediately
-follows the [CODE] byte, and this is the number of bytes in [VALUE…] (referred to as a Multi-Byte
-Value). These higher CODEs are useful for transmitting arrays of values, or values that cannot be fit
-into a single byte.
-The DataRow format is defined in this way so that any properly implemented parser will not break
-in the future if new CODEs representing arbitrarily long DATA… values are added (they simply ignore
-unrecognized CODEs, but do not break in parsing), the order of CODEs is rearranged in the Packet, or
-if some CODEs are not always transmitted in every Packet.
-A procedure for properly parsing Packets and DataRows is given below in Step-By-Step Guide to
-Parsing a Packet and Step-By-Step Guide to Parsing DataRows in a Packet Payload, respectively.
+```
+
+注意：
+
+括号中的字节是有条件的，这意味着它们只出现在一些DataRow中，而不是出现在另一些DataRow中。详见以下描述..
+
+数据路可以以零或更多[EXCODE]（扩展代码）字节开头，这些字节是具有0x55值的字节。[EXCODE]字节数表示扩展代码级别.扩展代码级别反过来与[CODE]字节一起使用，以确定此DataRow包含什么类型的数据值。因此，分析器应该总是通过计数[EXCODE]（0x55）字节数来开始解析DataRow，这些字节数似乎决定了DataRow[CODE]的扩展代码级别。
+
+[CODE]字节与扩展代码级别一起指示DataRow中编码的数据值的类型。例如，在扩展代码级别0，0x04的[CODE]表示DataRow包含一个eSenseAttention值。有关定义[代码]含义的列表，请参阅下面的代码定义表。请注意，0x55的[EXCODE]字节永远不会用作[CODE]（顺便说一句，0xAA的[SYNC]字节也永远不会用作[CODE]）。
+
+如果[CODE]字节在0x00和0x7F之间，则[Value...]被暗示为1字节长（称为单字节值）。在这种情况下，没有[V LENGTH]字节，因此单个[V ALUE]字节将立即出现在[CODE]字节之后。‘
+
+但是，如果[CODE]大于0x7F，则[VLENGTH]（“值长度”）字节紧跟在[CODE]字节之后，这是[Value...）中的字节数（称为多字节值）。这些较高的代码对于传输不能装入单个字节的值或值的数组是有用的。
+
+以这种方式定义DataRow格式，以便任何正确实现的解析器在将来不会中断，如果新的代码表示任意长的DATA...值被添加（它们只是忽略未识别的代码，但在解析中不中断），代码的顺序在分组中被重新排列，或者如果一些代码并不总是在每个分组中传输。
+
+下面分别给出了一个正确解析分组和数据流的过程，分别在分组有效负载中解析分组和数据流的步骤指南中给出。
 
 #### 编码定义表
 
@@ -418,6 +388,7 @@ Extended (Byte) Code Level [CODE] [LENGTH] Data Value Meaning
 0 0x16 - Blink Strength. (0-255) Sent only when Blink event occurs.
 
 Multi-Byte CODEs
+
 Extended (Byte)
 Code Level [CODE] [LENGTH] Data Value Meaning
 ---------- ------ -------- ------------------
@@ -433,8 +404,8 @@ low-gamma, and mid-gamma EEG band
 power values
 Any 0x55 - NEVER USED (reserved for [EXCODE])
 Any 0xAA - NEVER USED (reserved for [SYNC])
-(any Extended Code Level/CODE combinations not listed in the table above have not yet been defined,but may be added at any time in the future)
-For detailed explanations of the meanings of each type of Data Value, please refer to the chapter on ThinkGear Data Values.
+(上表中未列出的任何扩展代码级别/CODE组合尚未定义，但今后可随时添加)
+有关每种数据值的含义的详细解释，请参阅关于ThinkGear数据值的一章。
 
 ## 示例包
 
@@ -527,26 +498,23 @@ byte: value // [CODE] Explanation
 
 3. 从流中读取下一个字节为[PLENGTH]。
 
-- If [PLENGTH] is 170 ([SYNC]), then repeat step 3.
-- If [PLENGTH] is greater than 170, then return to step 1 (PLENGTH TOO LARGE).
-- Otherwise, continue to step 4.
+- 如果[PLENGTH]为170（[SYNC]），则重复步骤3。
+- 如果[PLENGTH]大于170，则返回到步骤1（PLENGTH TOOLARGE）。
+- 否则继续执行步骤4..
 
-1. Read the next [PLENGTH] bytes of the [PAYLOAD…] from the stream, saving them into a storage
-area (such as an unsigned char payload[256] array). Sum up each byte as it is read by
-incrementing a checksum accumulator (checksum += byte).
+4. 从流中读取[PAYLOAD...]的下一个[PLENGTH]字节，将它们保存到存储中 区域（例如无符号char有效载荷[256]数组）。当读取每个字节时，通过增加校验和累加器（校验和=字节）来总结它。
 
-5. Take the lowest 8 bits of the checksum accumulator and invert them. Here is the C code:
+5. 取校验和累加器的最低8位并倒置它们。以下是C代码：
 
 ```C
 checksum &= 0xFF;
 checksum = ~checksum & 0xFF;
 ```
 
-1. Read the next byte from the stream as the[CHKSUM] byte.
-• If the [CHKSUM] does not match your calculated chksum (CHKSUM FAILED).
-• Otherwise, you may now parse the contents of the Payload into DataRows to obtain the
-Data Values, as described below.
-• In either case, return to step 1.
+6. 从流中读取下一个字节作为[CHKS Um]字节。
+- 如果[CHK SUM]与您计算的CHK SUM（CHK SUM失败）不匹配。
+- 否则，您现在可以将有效负载的内容解析为DataRow以获得数据值，如下所述。
+- 在任何一种情况下，返回到步骤1。
 
 ### 数据包有效负载中数据路的分步解析指南
 
@@ -572,12 +540,14 @@ Data Values, as described below.
 #include <stdio.h>
 #define SYNC 0xAA
 #define EXCODE 0x55
+
 int parsePayload( unsigned char *payload, unsigned char pLength ) {
     unsigned char bytesParsed = 0;
     unsigned char code;
     unsigned char length;
     unsigned char extendedCodeLevel;
     int i;
+
     /* Loop until all bytes are parsed from the payload[] array... */
     while( bytesParsed < pLength ) {
     /* Parse the extendedCodeLevel, code, and length */
@@ -604,6 +574,7 @@ int parsePayload( unsigned char *payload, unsigned char pLength ) {
         /* Increment the bytesParsed by the length of the Data Value */
         bytesParsed += length;
     }
+
     return( 0 );
 }
 
@@ -804,8 +775,6 @@ TGAM大约每秒钟发送513个包，注意是“大约每秒钟”，意思就�
 
 发送的包有小包和大包两种：
 
-## 小包
-
 小包的格式是
 
 ```C
@@ -934,30 +903,4 @@ qmake
 make
 ```
 
-## Version
-
-2019-12-3：
-
-重置项目；
-
-2019-7-21:
-
-修改说明文档；
-
-2019-7-3:
-
-重置项目，重新开始
-
-2018-8-15：
-
-添加图片和图标
-
-2018-8-14：
-
-创建菜单和动作
-
-2018-8-13：
-
-初始化
-
-[Back to Index](#Outline)
+[Back to Index](#mindviewer)
