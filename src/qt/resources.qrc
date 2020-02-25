@@ -1,22 +1,21 @@
 <RCC>
     <qresource prefix="/">
-        <file>resources/icons/save.png</file>
         <file>resources/icons/brain.ico</file>
         <file>resources/icons/open.svg</file>
         <file>resources/icons/exit.svg</file>
         <file>resources/icons/leader.png</file>
-        <file>resources/icons/tips.svg</file>
-        <file>resources/icons/close.svg</file>
-        <file>resources/icons/pulse.svg</file>
         <file>resources/icons/mind.svg</file>
         <file>resources/icons/about.svg</file>
-        <file>resources/icons/history.svg</file>
-        <file>resources/icons/print.svg</file>
-        <file>resources/icons/Mindfulness.svg</file>
-        <file>resources/icons/warning.svg</file>
         <file>resources/icons/delete.svg</file>
         <file>resources/themes/gray.qss</file>
         <file>resources/themes/light.qss</file>
         <file>resources/themes/seablue.qss</file>
+        <file>resources/icons/connect.svg</file>
+        <file>resources/icons/resume.svg</file>
+        <file>resources/icons/pause.svg</file>
+        <file>resources/icons/capture.svg</file>
+        <file>resources/icons/clear.svg</file>
+        <file>resources/icons/github.svg</file>
+        <file>resources/icons/qt.png</file>
     </qresource>
 </RCC>

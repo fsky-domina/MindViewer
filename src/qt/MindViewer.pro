@@ -1,12 +1,19 @@
-QT       += core gui widgets serialport
+QT       += core gui
+QT       += widgets
+QT       += serialport
 
 CONFIG += c++11
-DEFINES += QT_DEPRECATED_WARNINGS
 DESTDIR = bin
 OBJECTS_DIR = tmp/obj
 MOC_DIR = tmp/moc
 RCC_DIR = tmp/rcc
 UI_DIR = tmp/ui
+
+# The following define makes your compiler emit warnings if you use
+# any Qt feature that has been marked deprecated (the exact warnings
+# depend on your compiler). Please consult the documentation of the
+# deprecated API in order to know how to port your code away from it.
+DEFINES += QT_DEPRECATED_WARNINGS
 
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -23,10 +30,10 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-RESOURCES += \
-    resources.qrc
-
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    resources.qrc
