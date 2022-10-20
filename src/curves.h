@@ -1,3 +1,11 @@
+/////////////////////////////////////////////
+///
+/// \author jacky lea
+/// \date 2020-12-26
+/// \note 绘制原始数据折线图
+///
+////////////////////////////////////////////
+
 #ifndef CURVES_H
 #define CURVES_H
 
@@ -38,6 +46,8 @@ public:
 
     void updateRawData(short raw);
     void updateEEGData(struct _eegPkt pkt);
+
+    void CurveClear();
 
 private slots:
     void showItem(const QVariant &itemInfo, bool on);

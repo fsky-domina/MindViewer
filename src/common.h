@@ -1,3 +1,11 @@
+/////////////////////////////////////////////
+///
+/// \author jacky lea
+/// \date 2020-12-26
+/// \note 通用的数据结构
+///
+////////////////////////////////////////////
+
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -17,6 +25,7 @@ struct _eegPkt{
     int blink;//1-255
     uchar mwl;//mind-wandering level 走神程度 0-10
     uchar signal;//0-200
+    uchar power;
 
     void init(){
         delta=0;
@@ -32,6 +41,7 @@ struct _eegPkt{
         blink=0;
         mwl=0;
         signal=0;
+        power=0;
     }
 };//一个数据包包含的所有值
 

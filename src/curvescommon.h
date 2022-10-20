@@ -1,3 +1,11 @@
+/////////////////////////////////////////////
+///
+/// \author jacky lea
+/// \date 2020-12-26
+/// \note 绘制EEG数据折线图
+///
+////////////////////////////////////////////
+
 #ifndef CURVESCOMMON_H
 #define CURVESCOMMON_H
 
@@ -40,6 +48,8 @@ public:
 
     void updateCommonData(struct _eegPkt pkt);
 
+    void CurveClear();
+
 private slots:
     void showItem(const QVariant &itemInfo, bool on);
 
@@ -52,12 +62,13 @@ private:
     QwtPlotCurve *curveMeditation;
     QwtPlotCurve *curveSignal;//信号强度
     QwtPlotCurve *curveBlink;//眨眼
-    //QwtPlotCurve *curveMWL;
+    QwtPlotCurve *curvePower;//电源指示
 
     QVector<double> dataAttention;
     QVector<double> dataMeditation;
     QVector<double> dataSignal;
     QVector<double> dataBlink;
+    QVector<double> dataPower;
     QVector<double> xdata;
 
     int maxCnt;

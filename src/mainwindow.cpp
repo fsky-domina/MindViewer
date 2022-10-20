@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+///////////////////////////以下内容来自官方参考代码//////////////////////////////////////
+
 /* Decoder states (Packet decoding) */
 #define PARSER_STATE_NULL           0x00  /* NULL state */
 #define PARSER_STATE_SYNC           0x01  /* Waiting for SYNC byte */
@@ -17,20 +19,21 @@
 #define PARSER_SYNC_BYTE            0xAA  /* Syncronization byte */
 #define PARSER_EXCODE_BYTE          0x55  /* EXtended CODE level byte */
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->actionGraph->setChecked(true);
+    ui->actionGraph->setChecked(true);//默认使用图形模式
     resize(800,820);
 
-    gen=new Generator();
+    buff.clear();
+
     retriverWgt = new Retriver;
 
-    connect(gen,&Generator::sendData,this,&MainWindow::sltReceiveData);
-    connect(retriverWgt,&Retriver::rawData,this,&MainWindow::sltReceiveData);
+    connect(retriverWgt,&Retriver::rawData,this,&MainWindow::sltReceiveData);//实际串口数据
 
     ui->graphEEG->setGeometry(0,0,800,532);
     ui->graphCommon->setGeometry(0,532,800,266);
@@ -38,143 +41,153 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    if(gen!=nullptr){
-        gen->stopNow();
+    if(gen!=nullptr){//停止模拟数据
         delete gen;
     }
     delete retriverWgt;
     delete ui;
 }
 
-int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &eeg, struct _eegPkt &pkt)
+//使用状态机解析原始数据
+int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &common, bool &eeg, struct _eegPkt &pkt)
 {
-    //qDebug()<<"Parsering data";
-    raw=false;
-    eeg=false;
+    raw=false;//此数据包是否包含原始数据
+    eeg=false;//此数据包是否包含eeg数据
+    common=false;//此数据包是否包含注意力/冥想等数据
 
-    if(ba.isEmpty()) return -1;
-    int size=ba.size();
-    if(size>179) return -1;//官方说明最多179个字节
+    if(ba.isEmpty()) return -1;//如果没有数据就直接退出
 
-    int i=0;
+    buff.append(ba);//将数据添加到处理缓冲区
+
+    /////////////////处理开始/////////////////////////////////////
+    int cnt=0;
     uchar state=PARSER_STATE_SYNC;
     uchar payloadLength;
     uchar payloadSum;
-    while(i<size-1){
+    while(buff.size()){
+        //状态机处理
         switch(state){
         case PARSER_STATE_SYNC://第一个同步字节
-            if((uchar)ba[i]==PARSER_SYNC_BYTE){
-                //qDebug()<<"parser first aa "<<i<<(uchar)ba[i];
+            if((uchar)buff[0]==PARSER_SYNC_BYTE){
+                //qDebug()<<"parser first aa "<<i<<(uchar)buff[i];
                 state=PARSER_STATE_SYNC_CHECK;
             }
-            ++i;
+            buff.remove(0,1);//一直删除直到有0xaa
             break;
         case PARSER_STATE_SYNC_CHECK:
-            if((uchar)ba[i]==PARSER_SYNC_BYTE){
-                //qDebug()<<"parser second aa "<<i<<(uchar)ba[i];
+            if((uchar)buff[0]==PARSER_SYNC_BYTE){//包第二个0xaa
+                //qDebug()<<"parser second aa "<<i<<(uchar)buff[i];
                 state=PARSER_STATE_PAYLOAD_LENGTH;//准备解析负载长度
             }else{
                 state=PARSER_STATE_SYNC;
             }
-            ++i;
+            buff.remove(0,1);//不管什么状态，都要把这个删除
             break;
         case PARSER_STATE_PAYLOAD_LENGTH:
-            payloadLength=(uchar)ba[i];
-            if(payloadLength>170){
-                state=PARSER_STATE_SYNC;
-                return -3;
-            }else if(payloadLength==170){
-                return -4;
+            payloadLength=(uchar)buff[0];//接下来是长度
+            //qDebug()<<"payloadlength"<<payloadLength;
+            if(payloadLength>=170 || payloadLength<=0){//如果程度大于170就丢弃此包并查找下一个0xaa 0xaa
+                qDebug()<<"this package payloadLength(the 3rd value) is wrong";
+                state = PARSER_STATE_SYNC;
             }else{
                 payloadSum=0;
-                //qDebug()<<"parser payload length "<<i<<(uchar)ba[i];
+                //qDebug()<<"parser payload length "<<i<<(uchar)buff[i];
                 state=PARSER_STATE_CHKSUM;//准备解析有效数据
             }
-            ++i;
+            buff.remove(0,1);
             break;
         case PARSER_STATE_CHKSUM:
         {
-            uchar z=i;
             //首先校验数据是否有效
             for(int j=0;j<payloadLength;j++){
-                //qDebug()<<(uchar)ba[z+j];
-                payloadSum+=(uchar)ba[z+j];
+                payloadSum+=(uchar)buff[j];
             }
             payloadSum &= 0xff;
             payloadSum = ~payloadSum & 0xff;
-            z+=payloadLength;
 
-            if(payloadSum!=(uchar)ba[z]){
+            if(payloadSum!=(uchar)buff[payloadLength]){
                 //如果与校验值不同就丢弃此包数据
+                qDebug()<<"Checksum failed.";
                 return -1;
-            }/*else{
-                qDebug()<<"match";
-            }*/
-            //qDebug()<<"get data check sum is: "<<z<<(uchar)ba[z];
+            }
+            //qDebug()<<"get data check sum is: "<<z<<(uchar)buff[z];
             //qDebug()<<"parser check sum "<<i;
             state=PARSER_STATE_PAYLOAD;
             break;
         }
         case PARSER_STATE_PAYLOAD://解析数据
-            if((uchar)ba[i]==0x02){//数据信号强度值
-                //qDebug()<<"signal value "<<i<<(uchar)ba[i]<<(uchar)ba[i+1]<<(uint)ba[i+1];
-                eeg=true;
-                pkt.signal=(uchar)ba[i+1];
-                state=PARSER_STATE_PAYLOAD;
-                i+=2;
-            }else if((uchar)ba[i]==0x03){
-            }else if((uchar)ba[i]==0x04){//注意力值
-                //qDebug()<<"attention value "<<i<<(uchar)ba[i+1];
-                eeg=true;
-                pkt.attention=(uchar)ba[i+1];
-                state=PARSER_STATE_PAYLOAD;
-                i+=2;
-            }else if((uchar)ba[i]==0x05){//冥想值
-                //qDebug()<<"meditation value "<<i<<(uchar)ba[i+1];
-                eeg=true;
-                pkt.meditation=(uchar)ba[i+1];
-                state=PARSER_STATE_PAYLOAD;
-                i+=2;
-                //qDebug()<<"current i "<<i<<size;
-            }else if((uchar)ba[i]==0x06){//8bit raw value
-            }else if((uchar)ba[i]==0x07){
-            }else if((uchar)ba[i]==0x80){//16位原始数据
-                //qDebug()<<"parser raw value "<<i;
-                //qDebug()<<"parser a is: "<<(uchar)ba[i+2];
-                //qDebug()<<"parser b is: "<<(uchar)ba[i+3];
-                raw=true;
-                rawValue=((uchar)ba[i+3]<<8)|(uchar)ba[i+2];
+        {
+            if(cnt==payloadLength){
+                buff.remove(0,1);//如果数据已经没了，那么还剩下一个校验值
                 return 0;
-            }else if((uchar)ba[i]==0x81){
-            }else if((uchar)ba[i]==0x83){//eeg数据部分
-                //0x83标志eeg部分开始，下一位表示为eeg部分程度默认为0x18
-                //qDebug()<<"parser eeg data "<<i<<ba[i];
-                //qDebug()<<"parser eeg length "<<(uchar)ba[i+1];
-                eeg=true;
-                pkt.delta =((uint)ba[i+4]<<16)|((uint)ba[i+3]<<8)|((uint)ba[i+2]);
-                pkt.theta =((uint)ba[i+7]<<16)|((uint)ba[i+6]<<8)|((uint)ba[i+5]);
-                pkt.lowAlpha =((uint)ba[i+10]<<16)|((uint)ba[i+9]<<8)|((uint)ba[i+8]);
-                pkt.highAlpha =((uint)ba[i+13]<<16)|((uint)ba[i+12]<<8)|((uint)ba[i+11]);
-                pkt.lowBeta =((uint)ba[i+16]<<16)|((uint)ba[i+15]<<8)|((uint)ba[i+14]);
-                pkt.highBeta =((uint)ba[i+19]<<16)|((uint)ba[i+18]<<8)|((uint)ba[i+17]);
-                pkt.lowGamma =((uint)ba[i+22]<<16)|((uint)ba[i+21]<<8)|((uint)ba[i+20]);
-                pkt.midGamma =((uint)ba[i+25]<<16)|((uint)ba[i+24]<<8)|((uint)ba[i+23]);
-                state=PARSER_STATE_PAYLOAD;
-                i+=26;
-                //qDebug()<<(uchar)ba[i]<<i;
-            }else if((uchar)ba[i]==0x86){
-                break;
             }
-            //ui->textHex->appendPlainText(QString::number((uchar)ba[z],16));
+            if((uchar)buff[0]==0x01){//电源值，最大为127
+                common=true;
+                pkt.power=(uchar)buff[1];
+                state=PARSER_STATE_PAYLOAD;
+                buff.remove(0,2);
+                cnt+=2;
+            }else if((uchar)buff[0]==0x02){//数据信号强度值
+                //qDebug()<<"signal value "<<(uchar)buff[1];
+                common=true;
+                pkt.signal=(uchar)buff[1];
+                state=PARSER_STATE_PAYLOAD;
+                buff.remove(0,2);
+                cnt+=2;
+            }else if((uchar)buff[0]==0x03){
+                //ego上的心跳强度0-255
+            }else if((uchar)buff[0]==0x04){//注意力值
+                //qDebug()<<"attention value "<<(uchar)buff[1];
+                common=true;
+                pkt.attention=(uchar)buff[1];
+                state=PARSER_STATE_PAYLOAD;
+                buff.remove(0,2);
+                cnt+=2;
+            }else if((uchar)buff[0]==0x05){//冥想值
+                //qDebug()<<"meditation value "<<(uchar)buff[1];
+                common=true;
+                pkt.meditation=(uchar)buff[1];
+                state=PARSER_STATE_PAYLOAD;
+                buff.remove(0,2);
+                cnt+=2;
+            }else if((uchar)buff[0]==0x06){//8bit raw value
+            }else if((uchar)buff[0]==0x07){
+                //raw_marker 固定值为0
+            }else if((uchar)buff[0]==0x80 && (uchar)buff[1]==0x02){//16位原始数据
+                raw=true;
+                rawValue=((uchar)buff[2]<<8)|(uchar)buff[3];
+                buff.remove(0,5);
+                return 0;
+            }else if((uchar)buff[0]==0x81 && (uchar)buff[1]==0x20){
+                //eeg_power 8个大端四字节
+            }else if((uchar)buff[0]==0x83 && (uchar)buff[1]==0x18){//eeg数据部分
+                //0x83标志eeg部分开始，下一位表示为eeg部分程度默认为0x18,8个大端三字节
+                //qDebug()<<"parser eeg data "<<i<<buff[i];
+                //qDebug()<<"parser eeg length "<<(uchar)buff[i+1];
+                eeg=true;
+                //tgam数据默认为大端
+                pkt.delta =((uint)buff[2]<<16)|((uint)buff[3]<<8)|((uint)buff[4]);
+                pkt.theta =((uint)buff[5]<<16)|((uint)buff[6]<<8)|((uint)buff[7]);
+                pkt.lowAlpha =((uint)buff[8]<<16)|((uint)buff[9]<<8)|((uint)buff[10]);
+                pkt.highAlpha =((uint)buff[11]<<16)|((uint)buff[12]<<8)|((uint)buff[13]);
+                pkt.lowBeta =((uint)buff[14]<<16)|((uint)buff[15]<<8)|((uint)buff[16]);
+                pkt.highBeta =((uint)buff[17]<<16)|((uint)buff[18]<<8)|((uint)buff[19]);
+                pkt.lowGamma =((uint)buff[20]<<16)|((uint)buff[21]<<8)|((uint)buff[22]);
+                pkt.midGamma =((uint)buff[23]<<16)|((uint)buff[24]<<8)|((uint)buff[25]);
+                state=PARSER_STATE_PAYLOAD;
+                buff.remove(0,26);
+                cnt+=26;
+            }else if((uchar)buff[0]==0x86 && (uchar)buff[1]==0x02){
+                //两个大端字节表示R峰的间隔
+            }
             break;
+        }
         case PARSER_STATE_NULL:
             break;
         default:
             break;
         }
     }
-
-    //qDebug()<<"all data has been parsered";
 
     return 0;
 }
@@ -183,13 +196,19 @@ void MainWindow::resizeEvent(QResizeEvent */*event*/)
 {
     int width = ui->stackedWidget->width();
     int height = ui->stackedWidget->height();
-    if(height <700) return;
+    if(height <700) return;//窗口必须大于700
     ui->graphEEG->setGeometry(0,0,width,height*2/3);
     ui->graphCommon->setGeometry(0,height*2/3,width,height/3);
+    update();
 }
 
+//接收原始数据
 void MainWindow::sltReceiveData(QByteArray ba)
 {
+    //如果是每秒512个包，眼睛跟不上，以1:10过滤
+    //注意每512个包才有1个eeg包，不要把eeg包过滤了
+
+    //16进制模式
     if(ui->actionHex->isChecked()){
         QString s;
         for(int i=0;i<ba.size();i++){
@@ -198,31 +217,39 @@ void MainWindow::sltReceiveData(QByteArray ba)
             s+=sss;
         }
         ui->textHex->appendPlainText(s);
-    }else{
-        bool raw,eeg;
+    }else{//图形模式
+        bool raw,eeg,common;
         short rawValue;
         struct _eegPkt pkt;
         pkt.init();
-        parserData(ba,raw,rawValue,eeg,pkt);
+        if(parserData(ba,raw,rawValue,common,eeg,pkt)!=0){
+            return;
+        }
+        if(common){
+            ui->graphCommon->updateCommonData(pkt);//将数据发送到界面
+            if(!isEEGResized){//绘图之后需要手动调整窗口大小，我们自己调整一下
+                resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
+                isEEGResized=true;
+                update();
+            }
+        }
         if(eeg){
-            ui->graphCommon->updateCommonData(pkt);
-            ui->graphEEG->updateEEGData(pkt);
+            ui->graphEEG->updateEEGData(pkt);//将数据发送到界面
+            if(!isEEGResized){//绘图之后需要手动调整窗口大小，我们自己调整一下
+                resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
+                isEEGResized=true;
+                update();
+            }
         }
         if(raw){
             ui->graphEEG->updateRawData(rawValue);
+            if(!isCommonResized){
+                resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
+                isCommonResized=true;
+                update();
+            }
         }
     }
-}
-
-//打开文件位置
-void MainWindow::on_actionOpen_triggered()
-{
-    QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), QString());
-    if (filePath.isEmpty()) {
-        QMessageBox::information(this, tr("Warning"), tr("Nothing selected"));
-        return;
-    }
-    qDebug()<<"Select file path is: "<<filePath;
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -255,31 +282,42 @@ void MainWindow::on_actionGithub_triggered()
 
 void MainWindow::on_actionSerialPort_triggered()
 {
-    retriverWgt->showWgt();
+    if(ui->actionSerialPort->isChecked()){
+        ui->actionTest->setChecked(false);
+        on_actionTest_triggered();
+        ui->graphCommon->CurveClear();
+        ui->graphEEG->CurveClear();
+        retriverWgt->showWgt();
+    }else{
+        retriverWgt->stopCOM();
+    }
 }
 
 void MainWindow::on_actionTest_triggered()
 {
-    gen->start();
-}
-
-void MainWindow::on_actionSave_triggered()
-{
-    if(ui->actionHex->isChecked()){
-        QMessageBox::information(this,tr("Save text"),"Save hex data to file?",QMessageBox::Ok|QMessageBox::Cancel);
+    if(ui->actionTest->isChecked()){
+        ui->actionSerialPort->setChecked(false);
+        on_actionSerialPort_triggered();
+        gen=new Generator();
+        connect(gen,&Generator::sendData,this,&MainWindow::sltReceiveData);//模拟数据
     }else{
-        QMessageBox::information(this,tr("Save image"),"Save image to file?",QMessageBox::Ok|QMessageBox::Cancel);
+        if(gen){
+            disconnect(gen,&Generator::sendData,this,&MainWindow::sltReceiveData);
+            delete gen;
+        }
     }
 }
 
 void MainWindow::on_actionHex_triggered(bool checked)
 {
-    if(checked){
+    if(checked){//文本模式
         ui->stackedWidget->setCurrentIndex(0);
         ui->actionGraph->setChecked(false);
+        ui->textHex->clear();
     }else{
         ui->stackedWidget->setCurrentIndex(1);
         ui->actionGraph->setChecked(true);
+        ui->textHex->clear();
     }
 }
 
@@ -288,6 +326,8 @@ void MainWindow::on_actionGraph_triggered(bool checked)
     if(checked){
         ui->stackedWidget->setCurrentIndex(1);
         ui->actionHex->setChecked(false);
+        ui->graphCommon->CurveClear();
+        ui->graphEEG->CurveClear();
     }else{
         ui->stackedWidget->setCurrentIndex(0);
         ui->actionHex->setChecked(true);

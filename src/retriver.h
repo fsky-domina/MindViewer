@@ -1,3 +1,11 @@
+/////////////////////////////////////////////
+///
+/// \author jacky lea
+/// \date 2020-12-26
+/// \note 串口处理函数
+///
+////////////////////////////////////////////
+
 #ifndef RETRIVER_H
 #define RETRIVER_H
 
@@ -27,6 +35,7 @@ public:
     ~Retriver();
 
     void showWgt();
+    void stopCOM();
 
 signals:
     void rawData(QByteArray ba);

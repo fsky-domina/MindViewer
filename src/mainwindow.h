@@ -46,7 +46,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    int parserData(QByteArray ba, bool &raw, short &rawValue, bool &eeg, struct _eegPkt &pkt);
+    int parserData(QByteArray ba, bool &raw, short &rawValue, bool &common,bool &eeg, struct _eegPkt &pkt);
 
 protected:
     void resizeEvent(QResizeEvent *);
@@ -55,8 +55,6 @@ private slots:
     void sltReceiveData(QByteArray ba);
 
 private slots:
-    void on_actionOpen_triggered();
-
     void on_actionExit_triggered();
 
     void on_actionAbout_triggered();
@@ -69,8 +67,6 @@ private slots:
 
     void on_actionTest_triggered();
 
-    void on_actionSave_triggered();
-
     void on_actionHex_triggered(bool checked);
 
     void on_actionGraph_triggered(bool checked);
@@ -78,7 +74,14 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    Generator *gen;
+    Generator *gen=nullptr;
     Retriver *retriverWgt;
+
+    bool isCommonResized=false;
+    bool isEEGResized = false;
+
+    QByteArray buff;//串口缓冲区
+
+    int filterCnt=0;//用于滤波
 };
 #endif // MAINWINDOW_H

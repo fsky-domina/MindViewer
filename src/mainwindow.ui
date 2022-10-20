@@ -117,7 +117,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Help">
@@ -132,11 +132,9 @@
     <property name="title">
      <string>Operation</string>
     </property>
-    <addaction name="actionOpen"/>
     <addaction name="actionTest"/>
     <addaction name="actionSerialPort"/>
     <addaction name="separator"/>
-    <addaction name="actionSave"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -151,15 +149,6 @@
    <addaction name="menu_Mode"/>
    <addaction name="menu_Help"/>
   </widget>
-  <action name="actionOpen">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/resources/icons/open.svg</normaloff>:/resources/icons/open.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Open</string>
-   </property>
-  </action>
   <action name="actionExit">
    <property name="icon">
     <iconset resource="resources.qrc">
@@ -197,6 +186,9 @@
    </property>
   </action>
   <action name="actionSerialPort">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/serialport.svg</normaloff>:/resources/icons/serialport.svg</iconset>
@@ -206,6 +198,9 @@
    </property>
   </action>
   <action name="actionTest">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/test.svg</normaloff>:/resources/icons/test.svg</iconset>
@@ -236,15 +231,6 @@
    </property>
    <property name="text">
     <string>Graph</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/resources/icons/save.svg</normaloff>:/resources/icons/save.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Save</string>
    </property>
   </action>
  </widget>

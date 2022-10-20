@@ -13,62 +13,69 @@ CurvesCommon::CurvesCommon(QWidget *parent) :
         xdata.append(double(i));
     }
 
+    //基本的画布
     canvas = new QwtPlotCanvas(this);
-    canvas->setPalette(Qt::white);
-    canvas->setBorderRadius(10);
+    canvas->setPalette(Qt::white);//画布背景
+    canvas->setBorderRadius(10);//画布圆角
     setCanvas(canvas);
     plotLayout()->setAlignCanvasToScales(true);
 
+    //设置坐标轴信息
     setAxisTitle(QwtPlot::yLeft,"value");
     setAxisTitle(QwtPlot::xBottom,"time: s");
     setAxisScale(QwtPlot::yLeft,0.0,256.0);
     setAxisScale(QwtPlot::xBottom,0.0,maxCnt);
 
+    //子图
     QwtPlotGrid *grid = new QwtPlotGrid();
     grid->enableX(true);
     grid->enableY(true);
     grid->setMajorPen(Qt::black,0,Qt::DotLine);
     grid->attach(this);
 
+    //折线1
     curveAttention = new QwtPlotCurve("attention");
     curveAttention->setPen(Qt::red,2);
     curveAttention->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
+    //折线2
     curveBlink = new QwtPlotCurve("blink");
     curveBlink->setPen(Qt::gray,2);
     curveBlink->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
+    //折线3
     curveMeditation = new QwtPlotCurve("meditation");
     curveMeditation->setPen(Qt::green,2);
     curveMeditation->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
+    //折线4
     curveSignal = new QwtPlotCurve("signal");
     curveSignal->setPen(Qt::blue,2);
     curveSignal->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
-//    QwtSymbol *symbol=new QwtSymbol(QwtSymbol::Ellipse,QBrush(Qt::yellow),QPen(Qt::red,2),QSize(6,6));//设置样本点的颜色、大小
-//    curveAttention->setSymbol(symbol);//添加样本点形状
+    //折线5
+    curvePower = new QwtPlotCurve("power");
+    curvePower->setPen(Qt::yellow,2);
+    curvePower->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
     //--------------设置图例可以被点击来确定是否显示曲线-----------------------//
     QwtLegend *legend = new QwtLegend;
     legend->setDefaultItemMode( QwtLegendData::Checkable );//图例可被点击
     insertLegend( legend, QwtPlot::RightLegend );
-    connect(legend,SIGNAL(checked(const QVariant &,bool,int)),SLOT(showItem(const QVariant &, bool)));//点击图例操作
+    connect(legend,&QwtLegend::checked,this,&CurvesCommon::showItem);//点击图例操作
 
     QwtPlotItemList items = itemList( QwtPlotItem::Rtti_PlotCurve );//获取画了多少条曲线,如果为获取其他形状，注意改变参数
     for ( int i = 0; i < items.size(); i++ ){
+        if(i==0){
+        const QVariant itemInfo = itemToInfo(items[i]);
+        QwtLegendLabel *legendLabel = qobject_cast<QwtLegendLabel*>(legend->legendWidget(itemInfo));
+        if(legendLabel){
+            legendLabel->setChecked(true);
+        }
         items[i]->setVisible(true);
-//        if ( i == 0 ){
-//            const QVariant itemInfo = itemToInfo( items[i] );
-
-//            QwtLegendLabel *legendLabel =
-//                    qobject_cast<QwtLegendLabel *>( legend->legendWidget( itemInfo ) );
-//            if ( legendLabel )
-//                legendLabel->setChecked( true );//
-//            items[i]->setVisible( true );
-//        }else{
-//            items[i]->setVisible( false );
-//        }
+        }else{
+            items[i]->setVisible(false);
+        }
     }
     resize(800,266);
     replot();
@@ -79,6 +86,7 @@ CurvesCommon::~CurvesCommon()
 {
     delete ui;
 }
+
 //更新小值数据至界面
 void CurvesCommon::updateCommonData(struct _eegPkt pkt)
 {
@@ -109,16 +117,36 @@ void CurvesCommon::updateCommonData(struct _eegPkt pkt)
     curveMeditation->attach(this);
     curveMeditation->setLegendAttribute(curveMeditation->LegendShowLine);//显示图例的标志，这里显示线的颜色。
 
+    //信号强度
     if(dataSignal.size()>maxCnt){
         dataSignal.pop_front();
     }
     dataSignal.append(pkt.signal);
     curveSignal->setSamples(xdata,dataSignal);
     curveSignal->attach(this);
-    curveSignal->setLegendAttribute(curveAttention->LegendShowLine);//显示图例的标志，这里显示线的颜色。
+    curveSignal->setLegendAttribute(curveSignal->LegendShowLine);//显示图例的标志，这里显示线的颜色。
+
+    //电源指示
+    if(dataPower.size()>maxCnt){
+        dataPower.pop_front();
+    }
+    dataPower.append(pkt.power);
+    curvePower->setSamples(xdata,dataPower);
+    curvePower->attach(this);
+    curvePower->setLegendAttribute(curvePower->LegendShowLine);//显示图例的标志，这里显示线的颜色。
 
     replot();
 }
+
+void CurvesCommon::CurveClear()
+{
+    dataAttention.clear();
+    dataBlink.clear();
+    dataMeditation.clear();
+    dataSignal.clear();
+    dataPower.clear();
+}
+
 //是否显示此折线槽函数
 void CurvesCommon::showItem(const QVariant &itemInfo, bool on)
 {

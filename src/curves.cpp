@@ -71,29 +71,20 @@ Curves::Curves(QWidget *parent) :
     curveTheta->setPen(Qt::darkYellow,2);
     curveTheta->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 
-//    QwtSymbol *symbol=new QwtSymbol(QwtSymbol::Ellipse,QBrush(Qt::yellow),QPen(Qt::red,2),QSize(6,6));//设置样本点的颜色、大小
-//    curveRaw->setSymbol(symbol);//添加样本点形状
-
     //--------------设置图例可以被点击来确定是否显示曲线-----------------------//
     QwtLegend *legend = new QwtLegend;
     legend->setDefaultItemMode( QwtLegendData::Checkable );//图例可被点击
     insertLegend( legend, QwtPlot::RightLegend );
-    connect(legend,SIGNAL(checked(const QVariant &,bool,int)),SLOT(showItem(const QVariant &, bool)));//点击图例操作
+    connect(legend,&QwtLegend::checked,this,&Curves::showItem);//点击图例操作
 
     QwtPlotItemList items = itemList( QwtPlotItem::Rtti_PlotCurve );//获取画了多少条曲线,如果为获取其他形状，注意改变参数
     for ( int i = 0; i < items.size(); i++ ){
+        const QVariant itemInfo = itemToInfo(items[i]);
+        QwtLegendLabel *legendLabel = qobject_cast<QwtLegendLabel*>(legend->legendWidget(itemInfo));
+        if(legendLabel){
+            legendLabel->setChecked(true);
+        }
         items[i]->setVisible(true);
-//        if ( i == 0 ){
-//            const QVariant itemInfo = itemToInfo( items[i] );
-
-//            QwtLegendLabel *legendLabel =
-//                    qobject_cast<QwtLegendLabel *>( legend->legendWidget( itemInfo ) );
-//            if ( legendLabel )
-//                legendLabel->setChecked( true );//
-//            items[i]->setVisible( true );
-//        }else{
-//            items[i]->setVisible( false );
-//        }
     }
     resize(800,532);
     replot();
@@ -110,7 +101,6 @@ void Curves::updateRawData(short raw)
 {
     if(dataRaw.size()>=maxCnt){
         dataRaw.pop_front();
-        //dataRaw.erase(dataRaw.begin(),dataRaw.begin()+1);
     }
     dataRaw.append((double)raw);
 
@@ -119,6 +109,7 @@ void Curves::updateRawData(short raw)
     curveRaw->setLegendAttribute(curveRaw->LegendShowLine);//显示图例的标志，这里显示线的颜色。
     replot();
 }
+
 //显示八个脑电波数据
 void Curves::updateEEGData(_eegPkt pkt)
 {
@@ -187,6 +178,19 @@ void Curves::updateEEGData(_eegPkt pkt)
     curveTheta->setLegendAttribute(curveTheta->LegendShowLine);//显示图例的标志，这里显示线的颜色。
 
     replot();
+}
+//清空数据
+void Curves::CurveClear()
+{
+    dataRaw.clear();
+    dataDelta.clear();
+    dataHighAlpha.clear();
+    dataHighBeta.clear();
+    dataLowAlpha.clear();
+    dataLowBeta.clear();
+    dataLowGamma.clear();
+    dataMidGamma.clear();
+    dataTheta.clear();
 }
 
 void Curves::showItem(const QVariant &itemInfo, bool on)

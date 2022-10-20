@@ -7,17 +7,22 @@ Retriver::Retriver(QWidget *parent) :
     com(new QSerialPort)
 {
     ui->setupUi(this);
+    this->setWindowFlag(Qt::FramelessWindowHint);
 }
 
 Retriver::~Retriver()
 {
+    if(com->isOpen()){
+        com->close();
+    }
     delete com;
     delete ui;
 }
+
 //初始化界面数据并显示界面
 void Retriver::showWgt()
 {
-    //先获取所有端口号
+    //先获取所有端口号，并显示到界面上
     foreach(const QSerialPortInfo &info,QSerialPortInfo::availablePorts()){
         ui->comboBoxCOM->addItem(info.portName());
     }
@@ -31,25 +36,34 @@ void Retriver::showWgt()
     this->show();
 }
 
+void Retriver::stopCOM()
+{
+    if(isCOMOpen){
+        com->close();
+    }
+}
+
+//读取串口中的所有数据
 void Retriver::receiveData()
 {
     QByteArray data = com->readAll();
-    emit rawData(data);
+    emit rawData(data);//通知有原始数据来了
 }
 
 //打开关闭按钮
 void Retriver::on_btnOpenClose_clicked()
 {
     if(isCOMOpen){//关闭串口
-        com->clear();
+        com->clear();//清空串口数据
     }else{//打开串口
         //设置串口名字 假设我们上面已经成功获取到了 并且使用第一个
         com->setPortName(ui->comboBoxCOM->currentText());
+        //com->setPortName("/dev/pts/2");
 
         if(!com->open(QIODevice::ReadWrite))//用ReadWrite 的模式尝试打开串口
         {
             isCOMOpen=false;
-            QMessageBox::information(this,tr("Warning"),"打开失败!",QMessageBox::Ok);
+            QMessageBox::information(this,tr("Warning"),"打开失败!\n"+com->errorString(),QMessageBox::Ok);
             return;
         }
         isCOMOpen=true;
@@ -84,8 +98,13 @@ void Retriver::on_btnOpenClose_clicked()
     }
     this->close();
 }
+
 //取消操作
 void Retriver::on_btnCance_clicked()
 {
+    if(com->isOpen()){//如果串口已经打开就把它关闭
+        com->clear();
+        com->close();
+    }
     this->close();
 }
