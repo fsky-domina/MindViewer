@@ -18,7 +18,7 @@ MOC_DIR = .moc
 unix:{
     INCLUDEPATH += /usr/include/qwt
 
-    LIBS += -lqwt
+    LIBS += -lqwt-qt5
 }
 
 SOURCES += \
