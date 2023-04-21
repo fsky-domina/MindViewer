@@ -14,6 +14,13 @@ MOC_DIR = .moc
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+#Windows平台配置
+#将qwt库文件和头文件路径添加到此处
+win32:{
+    INCLUDEPATH += $$PWD/qwt/include
+    LIBS += -L$$PWD/qwt/lib -lqwt
+}
+
 #Linux下头文件以及库文件
 unix:{
     INCLUDEPATH += /usr/include/qwt
