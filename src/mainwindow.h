@@ -80,7 +80,7 @@ private:
     bool isCommonResized=false;
     bool isEEGResized = false;
 
-    QByteArray buff;//串口缓冲区
+    QByteArray mBuff;//串口缓冲区
 
     int filterCnt=0;//用于滤波
 };

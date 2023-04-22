@@ -18,7 +18,7 @@
 #include <QVector>
 #include <QMutex>
 
-const QList<uchar> TGAModules={0x01,0x02,0x04,0x05,0x80,0x83};
+const QList<uchar> TGAModules={0x01,0x02,0x04,0x05,0x83};
 
 class Generator : public QThread
 {
@@ -33,7 +33,6 @@ public:
     QByteArray getOne(uchar mn, int max);//输入为modulename,max
     QByteArray getRaw();//
     QByteArray getEEG();
-    QByteArray getPkg(bool status);
 
 signals:
     void sendData(QByteArray ba);
@@ -45,7 +44,9 @@ private:
 
     int i=0;
     QByteArray ms;//记录已经有的模块
-    QByteArray buff;
+    //QByteArray buff;
+//    bool isFront=true;
+//    bool eegfront= true;
 };
 
 #endif // GENERATOR_H
