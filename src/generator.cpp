@@ -106,11 +106,11 @@ QByteArray Generator::getRaw()
     //qDebug()<<"raw data"<<data;
 
     //添加随机干扰数据
-    int cnt = getNum();
-    for(int n=0;n<cnt;n++){
-        data.append(getNum());
-    }
-    data.append(0xaa);
+//    int cnt = getNum();
+//    for(int n=0;n<cnt;n++){
+//        data.append(getNum());
+//    }
+//    data.append(0xaa);
 
     return data;
 }
@@ -240,16 +240,16 @@ QByteArray Generator::getEEG()
         checksum &= 0xff;
         checksum = ~checksum & 0xff;
         pkg.append(checksum);
-        qDebug()<<"eeg"<<pkg;
+        //qDebug()<<"eeg"<<pkg;
         break;
     }
 
     //添加随机干扰数据
-    int cnt = getNum();
-    for(int n=0;n<cnt;n++){
-        pkg.append(getNum());
-    }
-    pkg.append(0xaa);
+//    int cnt = getNum();
+//    for(int n=0;n<cnt;n++){
+//        pkg.append(getNum());
+//    }
+//    pkg.append(0xaa);
 
     return pkg;
 }

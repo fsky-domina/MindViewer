@@ -325,7 +325,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
             //第3个字节是长度
             int length = mBuff[2];
             QByteArray tmpBA = mBuff.mid(0,length+2+1+1);
-            qDebug()<<"valid pkg"<<tmpBA;
+            //qDebug()<<"valid pkg"<<tmpBA;
             //从缓冲区删除已经解析的包
             //qDebug()<<"before delete"<<mBuff;
             mBuff.remove(0,length+4);
