@@ -49,7 +49,8 @@ QByteArray Generator::getOne(uchar mn,int max)
     data.append(getNum(max));
     return data;
 }
-
+//16位raw value -32768~32767
+//打包时分为两个uchar存储
 QByteArray Generator::getRaw()
 {
 //    QByteArray pkg;
@@ -121,6 +122,47 @@ QByteArray Generator::getRaw()
 //随机选择一个模块，判断这个模块是否已经有了
 //如果还没有这个模块，获取随机数决定是否添加
 //大包不包含原始数据
+//eeg数据有三个无符号整数组成
+//下为一个典型数据包的数据顺序和类型和类别
+/*typedef struct type1
+{
+    int ASYN1;
+    int ASYN2;
+    int PAYLOAD;
+    int Signal;
+    int SignalValue;
+    int Power;
+    int PowerValue;
+    int Delta1;
+    int Delta2;
+    int Delta3;
+    int Theta1;
+    int Theta2;
+    int Theta3;
+    int LowAlpha1;
+    int LowAlpha2;
+    int LowAlpha3;
+    int HighAlpha1;
+    int HightAlpha2;
+    int HightAlpha3;
+    int LowBeta1;
+    int LowBeta2;
+    int LowBeta3;
+    int HighBeta1;
+    int HighBeta2;
+    int HighBeta3;
+    int LowGamma1;
+    int LowGamma2;
+    int LowGamma3;
+    int MiddleGamma1;
+    int MiddleGamma2;
+    int MiddleGamma3;
+    int Attention;
+    int AttentionValue;
+    int Meditation;
+    int MeditationValue;
+    int checksum;
+} type1;*/
 QByteArray Generator::getEEG()
 {
 //    QByteArray pkg2;
