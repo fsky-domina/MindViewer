@@ -12,9 +12,29 @@ TGAM连接及测试：<a href="https://feater.top/tgam/setup-and-installation-of
 
 每秒钟接近600个点，不想使用qcharts（听说性能不是很好），绘图部分使用qwt库。
 
-Qt/qwt6.1.3/qserialport
+Qt + QWT6.1.3 + Ubuntu 22.04 LTS
 
-绘图效果：<img src="./img/mindviewer_result.png" alt="result" />
+## v3.0 （未完成）
+
+此版本打算换一个抄
+
+<img src="/img/mv3.webp" alt="新版本" />
+
+提升科技感\^_\^，同时提高稳定性。
+
+## v2.0
+
+勉强可用。
+
+绘图效果：<img src="/img/mymv.webp" alt="result" />
+
+当时是抄的这个
+
+<img src="/img/mv1.webp" alt="result" />
+
+## v1.0
+
+初步成型
 
 ## 说明
 
