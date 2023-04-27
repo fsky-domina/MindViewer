@@ -316,7 +316,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                 mBuff.remove(0,1);
                 continue;
             }
-            if(mBuff[0]!=0xAA || mBuff[1]!=0xAA ){
+            if(mBuff[0]!=(uchar)0xAA || mBuff[1]!=(uchar)0xAA ){
                 //qDebug()<<"next pkg"<<mBuff;
                 //删除一个直到符合
                 mBuff.remove(0,1);

@@ -7,20 +7,24 @@ Curves::Curves(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    maxCnt = 201;
+    maxCnt = 201;//一条曲线最多存储点数
 
+    //x坐标数
     for(int i=0;i<maxCnt;i++){
         xdata.append(i);
     }
 
+    //画布
     canvas = new QwtPlotCanvas(this);
     canvas->setPalette(Qt::white);
     canvas->setBorderRadius(10);
     setCanvas(canvas);
     plotLayout()->setAlignCanvasToScales(true);
 
+    //显示右侧的图例
     enableAxis(QwtPlot::yRight,true);
 
+    //标题
     setAxisTitle(QwtPlot::yLeft,"eeg value");
     setAxisTitle(QwtPlot::xBottom,"time: s");
     setAxisTitle(QwtPlot::yRight,"raw value");
@@ -28,12 +32,14 @@ Curves::Curves(QWidget *parent) :
     setAxisScale(QwtPlot::yLeft,-10737423,10737423);
     setAxisScale(QwtPlot::xBottom,0.0,maxCnt);
 
+    //显示网格
     QwtPlotGrid *grid = new QwtPlotGrid();
     grid->enableX(true);
     grid->enableY(true);
     grid->setMajorPen(Qt::black,0,Qt::DotLine);
     grid->attach(this);
 
+    //每一种数据对应一条曲线
     curveRaw = new QwtPlotCurve("raw");
     curveRaw->setPen(Qt::red,2);
     curveRaw->setRenderHint(QwtPlotItem::RenderAntialiased,true);
@@ -97,8 +103,10 @@ Curves::~Curves()
     delete ui;
 }
 
+//刷新原始数据
 void Curves::updateRawData(short raw)
 {
+    //保持内存中最多maxCnt个点数据
     if(dataRaw.size()>=maxCnt){
         dataRaw.pop_front();
     }
@@ -113,6 +121,7 @@ void Curves::updateRawData(short raw)
 //显示八个脑电波数据
 void Curves::updateEEGData(_eegPkt pkt)
 {
+    //保持内存中最多maxCnt个点数据
     if(dataDelta.size()>=maxCnt){
         dataDelta.pop_front();
     }
@@ -193,6 +202,7 @@ void Curves::CurveClear()
     dataTheta.clear();
 }
 
+//点击图例时此曲线是否显示
 void Curves::showItem(const QVariant &itemInfo, bool on)
 {
     QwtPlotItem *plotItem = infoToItem( itemInfo );
