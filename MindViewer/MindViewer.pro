@@ -37,10 +37,12 @@ unix:{
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    valueindicator.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    valueindicator.h
 
 FORMS += \
     mainwindow.ui
