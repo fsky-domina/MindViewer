@@ -22,10 +22,24 @@
      <widget class="QWidget" name="widgetRaw" native="true"/>
     </item>
     <item row="1" column="1">
-     <widget class="QWidget" name="widgetAttention" native="true"/>
+     <widget class="ValueIndicator" name="widgetAttention" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>256</width>
+        <height>256</height>
+       </size>
+      </property>
+     </widget>
     </item>
     <item row="1" column="2">
-     <widget class="QWidget" name="widgetMeditation" native="true"/>
+     <widget class="ValueIndicator" name="widgetMeditation" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>256</width>
+        <height>256</height>
+       </size>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -41,6 +55,14 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ValueIndicator</class>
+   <extends>QWidget</extends>
+   <header>valueindicator.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
