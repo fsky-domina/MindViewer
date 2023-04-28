@@ -38,10 +38,12 @@ unix:{
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    rawdataviewer.cpp \
     valueindicator.cpp
 
 HEADERS += \
     mainwindow.h \
+    rawdataviewer.h \
     valueindicator.h
 
 FORMS += \
