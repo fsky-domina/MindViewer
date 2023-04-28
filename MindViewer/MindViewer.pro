@@ -28,11 +28,11 @@ win32:{
     LIBS += -L$$PWD/qwt/lib -lqwt
 }
 
-#Linux下头文件以及库文件
+#Linux下头文件以及库文件 qwt6.2.0
 unix:{
-    INCLUDEPATH += /usr/include/qwt
+    INCLUDEPATH += $$PWD/../qwt/include
 
-    LIBS += -lqwt-qt5
+    LIBS += -l$$PWD/../qwt/lib -lqwt
 }
 
 SOURCES += \
