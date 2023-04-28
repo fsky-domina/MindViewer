@@ -25,8 +25,8 @@
      <widget class="ValueIndicator" name="widgetAttention" native="true">
       <property name="maximumSize">
        <size>
-        <width>256</width>
-        <height>256</height>
+        <width>200</width>
+        <height>200</height>
        </size>
       </property>
      </widget>
@@ -35,8 +35,8 @@
      <widget class="ValueIndicator" name="widgetMeditation" native="true">
       <property name="maximumSize">
        <size>
-        <width>256</width>
-        <height>256</height>
+        <width>200</width>
+        <height>200</height>
        </size>
       </property>
      </widget>
