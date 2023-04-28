@@ -36,12 +36,14 @@ unix:{
 }
 
 SOURCES += \
+    eegdataviewer.cpp \
     main.cpp \
     mainwindow.cpp \
     rawdataviewer.cpp \
     valueindicator.cpp
 
 HEADERS += \
+    eegdataviewer.h \
     mainwindow.h \
     rawdataviewer.h \
     valueindicator.h
