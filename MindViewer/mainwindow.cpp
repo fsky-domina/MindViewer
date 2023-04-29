@@ -8,6 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->widgetAttention->setLabel("Attention");
     ui->widgetMeditation->setLabel("Meditation");
+
+    ui->widgetAttention->setValue(50);
+    ui->widgetMeditation->setValue(60);
 }
 
 MainWindow::~MainWindow()

@@ -18,6 +18,11 @@ RawDataViewer::RawDataViewer(QWidget *parent)
     curveRaw.setPen(Qt::black,2);
     curveRaw.setStyle(QwtPlotCurve::Lines);
     curveRaw.setRenderHint(QwtPlotItem::RenderAntialiased);
+
+    for(int i=0;i<100;i++){
+        m_data.append(i);
+    }
+    curveRaw.setSamples(m_xdata,m_data);
 }
 
 void RawDataViewer::setMaxDataCnt(uint cnt)
