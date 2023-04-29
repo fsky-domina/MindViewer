@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>885</width>
-    <height>614</height>
+    <width>932</width>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,35 +15,100 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" rowspan="2">
-     <widget class="EEGDataViewer" name="widgetEEG" native="true"/>
-    </item>
-    <item row="0" column="1" colspan="2">
-     <widget class="RawDataViewer" name="widgetRaw" native="true">
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="ValueIndicator" name="widgetAttention" native="true">
-      <property name="maximumSize">
+    <item row="1" column="0" rowspan="2">
+     <widget class="EEGDataViewer" name="widgetEEG" native="true">
+      <property name="minimumSize">
        <size>
-        <width>200</width>
-        <height>200</height>
+        <width>500</width>
+        <height>500</height>
        </size>
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
-     <widget class="ValueIndicator" name="widgetMeditation" native="true">
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>200</height>
-       </size>
+    <item row="0" column="0" colspan="2">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
       </property>
-     </widget>
+      <property name="sizeConstraint">
+       <enum>QLayout::SetFixedSize</enum>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="PowerViewer" name="widget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>20</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="1" rowspan="2">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMaximumSize</enum>
+      </property>
+      <item row="2" column="0">
+       <widget class="ValueIndicator" name="widgetAttention" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ValueIndicator" name="widgetMeditation" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="RawDataViewer" name="widgetRaw" native="true">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -53,7 +118,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>885</width>
+     <width>932</width>
      <height>20</height>
     </rect>
    </property>
@@ -76,6 +141,12 @@
    <class>EEGDataViewer</class>
    <extends>QWidget</extends>
    <header>eegdataviewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PowerViewer</class>
+   <extends>QWidget</extends>
+   <header>powerviewer.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
