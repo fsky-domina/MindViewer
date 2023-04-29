@@ -39,12 +39,14 @@ SOURCES += \
     eegdataviewer.cpp \
     main.cpp \
     mainwindow.cpp \
+    powerviewer.cpp \
     rawdataviewer.cpp \
     valueindicator.cpp
 
 HEADERS += \
     eegdataviewer.h \
     mainwindow.h \
+    powerviewer.h \
     rawdataviewer.h \
     valueindicator.h
 
