@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0" rowspan="2">
-     <widget class="QWidget" name="widgetEEG" native="true"/>
+     <widget class="EEGDataViewer" name="widgetEEG" native="true"/>
     </item>
     <item row="0" column="1" colspan="2">
      <widget class="RawDataViewer" name="widgetRaw" native="true">
@@ -70,6 +70,12 @@
    <class>RawDataViewer</class>
    <extends>QWidget</extends>
    <header>rawdataviewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EEGDataViewer</class>
+   <extends>QWidget</extends>
+   <header>eegdataviewer.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
