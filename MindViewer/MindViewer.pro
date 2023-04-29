@@ -32,7 +32,7 @@ win32:{
 unix:{
     INCLUDEPATH += $$PWD/../qwt/include
 
-    LIBS += -l$$PWD/../qwt/lib -lqwt
+    LIBS += -L$$PWD/../qwt/lib -lqwt
 }
 
 SOURCES += \

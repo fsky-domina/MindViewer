@@ -1,5 +1,7 @@
 #include "rawdataviewer.h"
 
+#include <QPainter>
+
 RawDataViewer::RawDataViewer(QWidget *parent)
     : QWidget(parent)
     , m_cnt(100)

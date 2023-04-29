@@ -16,6 +16,7 @@
 #include "qwt_plot_canvas.h"
 #include "qwt_plot_curve.h"
 #include "qwt_plot_layout.h"
+#include "QwtScaleMap"
 
 class RawDataViewer : public QWidget
 {
