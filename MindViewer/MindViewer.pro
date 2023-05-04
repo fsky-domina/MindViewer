@@ -41,6 +41,7 @@ SOURCES += \
     mainwindow.cpp \
     powerviewer.cpp \
     rawdataviewer.cpp \
+    simgen.cpp \
     valueindicator.cpp
 
 HEADERS += \
@@ -49,6 +50,7 @@ HEADERS += \
     mainwindow.h \
     powerviewer.h \
     rawdataviewer.h \
+    simgen.h \
     valueindicator.h
 
 FORMS += \
