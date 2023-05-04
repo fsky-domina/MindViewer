@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+#include "simgen.h"
+#include "common.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -14,6 +17,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    int parserData(QByteArray ba, bool &raw, short &rawValue, bool &common,bool &eeg, struct _eegPkt &pkt);
+
+public slots:
+    void sltReceiveData(QByteArray ba);
 
 private slots:
     void sltActionTest();
@@ -31,5 +39,10 @@ private:
 
 private:
     Ui::MainWindow *ui;
+
+    SimGen * simGen;
+    //Retriver *retriverWgt;
+
+    QByteArray mBuff;//串口缓冲区
 };
 #endif // MAINWINDOW_H

@@ -151,6 +151,9 @@
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionTest">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/test.svg</normaloff>:/resources/icons/test.svg</iconset>
@@ -160,6 +163,9 @@
    </property>
   </action>
   <action name="actionCOM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/serialport.svg</normaloff>:/resources/icons/serialport.svg</iconset>
