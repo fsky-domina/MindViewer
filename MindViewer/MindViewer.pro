@@ -44,6 +44,7 @@ SOURCES += \
     valueindicator.cpp
 
 HEADERS += \
+    common.h \
     eegdataviewer.h \
     mainwindow.h \
     powerviewer.h \

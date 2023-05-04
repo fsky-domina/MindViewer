@@ -1,25 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-///////////////////////////以下内容来自官方参考代码//////////////////////////////////////
-
-/* Decoder states (Packet decoding) */
-#define PARSER_STATE_NULL           0x00  /* NULL state */
-#define PARSER_STATE_SYNC           0x01  /* Waiting for SYNC byte */
-#define PARSER_STATE_SYNC_CHECK     0x02  /* Waiting for second SYNC byte */
-#define PARSER_STATE_PAYLOAD_LENGTH 0x03  /* Waiting for payload[] length */
-#define PARSER_STATE_CHKSUM         0x04  /* Waiting for chksum byte */
-#define PARSER_STATE_PAYLOAD        0x05  /* Waiting for next payload[] byte */
-
-/* Decoder states (2-byte raw decoding) */
-#define PARSER_STATE_WAIT_HIGH      0x06  /* Waiting for high byte */
-#define PARSER_STATE_WAIT_LOW       0x07  /* High r'cvd.  Expecting low part */
-
-/* Other constants */
-#define PARSER_SYNC_BYTE            0xAA  /* Syncronization byte */
-#define PARSER_EXCODE_BYTE          0x55  /* EXtended CODE level byte */
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
