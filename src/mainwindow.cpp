@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     initUi();//初始化界面
     initConnections();//初始化信号槽
 
-    ui->setupUi(this);
     ui->actionGrap->setChecked(true);//默认使用图形模式
     resize(800,820);
 
@@ -23,11 +22,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     //connect(retriverWgt,&Retriver::rawData,this,&MainWindow::sltReceiveData);//实际串口数据
     //每30ms刷新一次界面
-    QTimer timer;
-    timer.setInterval(30);
-    connect(&timer,&QTimer::timeout,[=](){
-        update();
-    });
+//    QTimer timer;
+//    timer.setInterval(30);
+//    connect(&timer,&QTimer::timeout,[=](){
+//        update();
+//    });
 }
 
 MainWindow::~MainWindow()
@@ -45,6 +44,7 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
     //输入的数据ba只包含一个有效包
     //qDebug()<<"parse start";
     raw=false;//此数据包是否包含原始数据
+    rawValue=0;
     eeg=false;//此数据包是否包含eeg数据
     common=false;//此数据包是否包含注意力/冥想等数据
 
@@ -55,7 +55,7 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
 
     /////////////////处理开始/////////////////////////////////////
     int cnt=0;
-    uchar state=PARSER_STATE_SYNC;
+    uchar state=PARSER_STATE_SYNC;//起始状态
     uchar payloadLength=0;
     uchar payloadSum=0;
     while(buff.size()){
@@ -65,16 +65,20 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
         case PARSER_STATE_SYNC://第一个同步字节
             if((uchar)buff[0]==PARSER_SYNC_BYTE){
                 //qDebug()<<"parser first aa "<<i<<(uchar)buff[i];
-                state=PARSER_STATE_SYNC_CHECK;
+                state=PARSER_STATE_SYNC_CHECK;//等待第2个0xaa
+            }else{
+                state = PARSER_SYNC_BYTE;//如果第一个字节不是0xaa，就从头开始
             }
             buff.remove(0,1);
             break;
-        case PARSER_STATE_SYNC_CHECK:
+        case PARSER_STATE_SYNC_CHECK://第二个同步字节
             if((uchar)buff[0]==PARSER_SYNC_BYTE){//包第二个0xaa
                 //qDebug()<<"parser second aa "<<i<<(uchar)buff[i];
                 state=PARSER_STATE_PAYLOAD_LENGTH;//准备解析负载长度
-                buff.remove(0,1);
+            }else{
+                state = PARSER_STATE_SYNC;//如果第二个字节不是0xaa，就从头开始
             }
+            buff.remove(0,1);
             break;
         case PARSER_STATE_PAYLOAD_LENGTH:
             payloadLength=(uchar)buff[0];//接下来是长度
@@ -82,7 +86,6 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
             if(payloadLength>=170 || payloadLength<=0){//如果长度大于170就丢弃此包并查找下一个0xaa 0xaa
                 qDebug()<<"this package payloadLength(the 3rd value) is wrong";
                 state = PARSER_STATE_SYNC;
-                //如果是0xaa 0xaa 0xff，包头对了但是长度不对
             }else{
                 //qDebug()<<"parser payload length "<<i<<(uchar)buff[i];
                 state=PARSER_STATE_CHKSUM;//准备解析有效数据
@@ -92,10 +95,11 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
         case PARSER_STATE_CHKSUM:
         {
             //qDebug()<<"check sum"<<payloadLength+1<<buff.size();
-            //如果剩余大小不够 1是末尾的校验值 3是包头和大小
+            //如果剩余大小不够 1是末尾的校验值
             if(payloadLength+1 >buff.size()){
                 qDebug()<<"pkg is not valid.";
                 state = PARSER_STATE_SYNC;
+                buff.remove(0,1);
                 break;
             }
             //执行到这里表示此时包是完整的，后续解析其实不需要判断包大小
@@ -194,6 +198,7 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
                 raw=true;
                 rawValue=((uchar)buff[2]<<8)|(uchar)buff[3];
                 buff.remove(0,5);//4个数据以及最后的校验值
+                state = PARSER_STATE_NULL;
                 break;
             }else if((uchar)buff[0]==0x81 && (uchar)buff[1]==0x20){
                 //eeg_power 8个大端四字节
@@ -240,8 +245,8 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
 //接收原始数据
 void MainWindow::sltReceiveData(QByteArray ba)
 {
-    //qDebug()<<"receive 1 "<<ba;
     if(ba.size()<=0) return;
+    qDebug()<<"receive 1 "<<ba;
 
     //16进制模式，直接添加到编辑框里面
     if(ui->actionHex->isChecked()){
@@ -262,7 +267,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
             //一个包最起码包含一个有效数据类型0xaa 0xaa 0x02 0xaa 0xaa
             return;//此时包肯定不完整，就结束
         }else{//有可能一次收的数据不完整先判断
-            while(mBuff.size()){
+            while(mBuff.size()>=5){//提取有效数据
                 if(mBuff[0]==0xAA && mBuff[1]==0xAA){//先找包头
                     //包大小
                     int pkgSize = mBuff[2];
@@ -271,83 +276,60 @@ void MainWindow::sltReceiveData(QByteArray ba)
                         return;
                     }else{
                         //此时继续解析
-                        break;
+                        //有一种特殊情况 0xaa 0xaa 0xaa
+                        if(mBuff[0]==0xaa && mBuff[1]==0xaa && mBuff[2]==0xaa){
+                            mBuff.remove(0,1);
+                            continue;
+                        }
+                        if(mBuff[0]!=(uchar)0xAA || mBuff[1]!=(uchar)0xAA ){
+                            //qDebug()<<"next pkg"<<mBuff;
+                            //删除一个直到符合
+                            mBuff.remove(0,1);
+                            continue;
+                        }
+                        //第3个字节是长度
+                        int length = mBuff[2];
+                        QByteArray tmpBA = mBuff.mid(0,length+2+1+1);//0xaa 0xaa 长度1 length 校验1
+                        qDebug()<<"valid pkg"<<tmpBA;
+                        //从缓冲区删除已经解析的包
+                        //qDebug()<<"before delete"<<mBuff;
+                        mBuff.remove(0,length+4);
+                        //qDebug()<<"after delete"<<mBuff;
+                        //解析函数一次只解析一个包
+                        {
+                            bool raw,eeg,common;
+                            short rawValue;
+                            struct _eegPkt pkt;
+                            pkt.init();
+                            if(parserData(tmpBA,raw,rawValue,common,eeg,pkt)!=0){
+                                qDebug()<<"Cannot parse data.";
+                                return;
+                            }
+                            //qDebug()<<"parsered";
+                            if(common){
+                            }
+                            //qDebug()<<"eeg";
+                            if(eeg){
+                            }
+                            //qDebug()<<"raw";
+                            if(raw){
+                                ui->widgetRaw->appendData(rawValue);
+                            }
+                        }
                     }
                 }else{
                     //如果前两个不是0xAA 0xAA就向后移一位
                     mBuff.remove(0,1);
                 }
-            }
-        }
-
-        //一包有效数据
-        //qDebug()<<"valid pkg";
-
-        //提取有效数据
-        while(mBuff.size()>=5){
-            //这里用while是考虑缓冲区可能有不止一个包
-            //有一种特殊情况 0xaa 0xaa 0xaa
-            if(mBuff[0]==0xaa && mBuff[1]==0xaa && mBuff[2]==0xaa){
-                mBuff.remove(0,1);
-                continue;
-            }
-            if(mBuff[0]!=(uchar)0xAA || mBuff[1]!=(uchar)0xAA ){
-                //qDebug()<<"next pkg"<<mBuff;
-                //删除一个直到符合
-                mBuff.remove(0,1);
-                continue;
-            }
-            //第3个字节是长度
-            int length = mBuff[2];
-            QByteArray tmpBA = mBuff.mid(0,length+2+1+1);
-            //qDebug()<<"valid pkg"<<tmpBA;
-            //从缓冲区删除已经解析的包
-            //qDebug()<<"before delete"<<mBuff;
-            mBuff.remove(0,length+4);
-            //qDebug()<<"after delete"<<mBuff;
-            //continue;
-            //解析函数一次只解析一个包
-            {
-                bool raw,eeg,common;
-                short rawValue;
-                struct _eegPkt pkt;
-                pkt.init();
-                if(parserData(tmpBA,raw,rawValue,common,eeg,pkt)!=0){
-                    qDebug()<<"Cannot parse data.";
-                    return;
-                }
-                //qDebug()<<"parsered";
-                if(common){
-//                    ui->graphCommon->updateCommonData(pkt);//将数据发送到界面
-//                    if(!isEEGResized){//绘图之后需要手动调整窗口大小，我们自己调整一下
-//                        resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
-//                        isEEGResized=true;
-//                    }
-                }
-                //qDebug()<<"eeg";
-                if(eeg){
-//                    ui->graphEEG->updateEEGData(pkt);//将数据发送到界面
-//                    if(!isEEGResized){//绘图之后需要手动调整窗口大小，我们自己调整一下
-//                        resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
-//                        isEEGResized=true;
-//                    }
-                }
-                //qDebug()<<"raw";
-                if(raw){
-//                    ui->graphEEG->updateRawData(rawValue);
-//                    if(!isCommonResized){
-//                        resize(ui->stackedWidget->currentWidget()->size().width()+40,ui->stackedWidget->currentWidget()->size().height());
-//                        isCommonResized=true;
-//                    }
-                }
-            }
-        }
+            }//while buff size >5
+        }//if buff size <5
         //qDebug()<<"mBuff"<<mBuff;
-    }
+    }//if action hex is checked
 }
 //使用测试模拟数据
 void MainWindow::sltActionTest()
 {
+    qDebug()<<ui->actionTest->isChecked();
     if(ui->actionTest->isChecked()){
         ui->actionCOM->setChecked(false);
         //on_actionSerialPort_triggered();
@@ -366,8 +348,6 @@ void MainWindow::sltActionCOM()
 //    if(ui->actionSerialPort->isChecked()){
 //        ui->actionTest->setChecked(false);
 //        on_actionTest_triggered();
-//        ui->graphCommon->CurveClear();
-//        ui->graphEEG->CurveClear();
 //        retriverWgt->showWgt();
 //    }else{
 //        retriverWgt->stopCOM();

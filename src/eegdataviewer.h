@@ -41,7 +41,7 @@ public:
     }
 
     QwtPointPolar sample(size_t i) const override{
-        assert(i>=0 && i<9);
+        assert(i<9);
         const double a = c_a[i];
         const double r = m_data[i];
 

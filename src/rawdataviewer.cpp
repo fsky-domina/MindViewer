@@ -13,7 +13,7 @@ RawDataViewer::RawDataViewer(QWidget *parent)
 
     //所有值被限制在此范围内
     xMap.setScaleInterval(0,m_cnt);
-    yMap.setScaleInterval(0,100);
+    yMap.setScaleInterval(-32768,32767);
 
     curveRaw.setPen(Qt::black,2);
     curveRaw.setStyle(QwtPlotCurve::Lines);
