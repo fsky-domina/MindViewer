@@ -178,6 +178,9 @@
    </property>
   </action>
   <action name="actionHex">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/hex.svg</normaloff>:/resources/icons/hex.svg</iconset>
@@ -187,6 +190,9 @@
    </property>
   </action>
   <action name="actionGrap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/resources/icons/graph.svg</normaloff>:/resources/icons/graph.svg</iconset>
