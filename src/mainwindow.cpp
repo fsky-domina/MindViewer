@@ -17,16 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     resize(800,820);
 
     mBuff.clear();
-
-    //retriverWgt = new Retriver;
-
-    //connect(retriverWgt,&Retriver::rawData,this,&MainWindow::sltReceiveData);//实际串口数据
-    //每30ms刷新一次界面
-//    QTimer timer;
-//    timer.setInterval(30);
-//    connect(&timer,&QTimer::timeout,[=](){
-//        update();
-//    });
 }
 
 MainWindow::~MainWindow()
@@ -34,7 +24,7 @@ MainWindow::~MainWindow()
     if(simGen!=nullptr){//停止模拟数据
         delete simGen;
     }
-    //delete retriverWgt;
+    delete retriverWgt;
     delete ui;
 }
 
@@ -242,7 +232,7 @@ int MainWindow::parserData(QByteArray ba, _eegPkt &pkt)
 void MainWindow::sltReceiveData(QByteArray ba)
 {
     if(ba.size()<=0) return;
-    qDebug()<<"receive 1 "<<ba;
+    //qDebug()<<"receive 1 "<<ba;
 
     //16进制模式，直接添加到编辑框里面
     if(ui->actionHex->isChecked()){
@@ -252,7 +242,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
             sss=ss.asprintf("0x%02X ",(unsigned char)ba.at(i));
             s+=sss;
         }
-        //ui->textHex->appendPlainText(s);
+        ui->textHex->appendPlainText(s);
     }else{//图形模式
         //把新收到的数据填充到缓冲区
         mBuff.append(ba);
@@ -286,7 +276,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                         //第3个字节是长度
                         int length = mBuff[2];
                         QByteArray tmpBA = mBuff.mid(0,length+2+1+1);//0xaa 0xaa 长度1 length 校验1
-                        qDebug()<<"valid pkg"<<tmpBA;
+                        //qDebug()<<"valid pkg"<<tmpBA;
                         //从缓冲区删除已经解析的包
                         //qDebug()<<"before delete"<<mBuff;
                         mBuff.remove(0,length+4);
@@ -347,31 +337,43 @@ void MainWindow::sltReceiveData(QByteArray ba)
     }//if action hex is checked
 }
 //使用测试模拟数据
-void MainWindow::sltActionTest()
+void MainWindow::sltActionTest(bool checked)
 {
-    qDebug()<<ui->actionTest->isChecked();
-    if(ui->actionTest->isChecked()){
+    if(checked){
+        if(ui->actionHex->isChecked()){
+            ui->stackedWidget->setCurrentIndex(1);
+        }
+        if(ui->actionGrap->isChecked()){
+            ui->stackedWidget->setCurrentIndex(0);
+        }
         ui->actionCOM->setChecked(false);
-        //on_actionSerialPort_triggered();
+        sltActionCOM(false);
         simGen=new SimGen();
         connect(simGen,&SimGen::sendData,this,&MainWindow::sltReceiveData);//模拟数据
     }else{
         if(simGen){
             disconnect(simGen,&SimGen::sendData,this,&MainWindow::sltReceiveData);
             delete simGen;
+            simGen=nullptr;
         }
     }
 }
 
-void MainWindow::sltActionCOM()
+void MainWindow::sltActionCOM(bool checked)
 {
-//    if(ui->actionSerialPort->isChecked()){
-//        ui->actionTest->setChecked(false);
-//        on_actionTest_triggered();
-//        retriverWgt->showWgt();
-//    }else{
-//        retriverWgt->stopCOM();
-    //    }
+    if(checked){
+        if(ui->actionHex->isChecked()){
+            ui->stackedWidget->setCurrentIndex(1);
+        }
+        if(ui->actionGrap->isChecked()){
+            ui->stackedWidget->setCurrentIndex(0);
+        }
+        ui->actionTest->setChecked(false);
+        sltActionTest(false);
+        retriverWgt->showWgt();
+    }else{
+        retriverWgt->stopCOM();
+    }
 }
 
 void MainWindow::sltActionExit()
@@ -381,28 +383,26 @@ void MainWindow::sltActionExit()
 
 void MainWindow::sltActionHex(bool checked)
 {
-//    if(checked){//文本模式
-//        ui->stackedWidget->setCurrentIndex(0);
-//        ui->actionGraph->setChecked(false);
-//        ui->textHex->clear();
-//    }else{
-//        ui->stackedWidget->setCurrentIndex(1);
-//        ui->actionGraph->setChecked(true);
-//        ui->textHex->clear();
-    //    }
+    if(checked){//文本模式
+        ui->stackedWidget->setCurrentIndex(1);
+        ui->actionGrap->setChecked(false);
+        ui->textHex->clear();
+    }else{
+        ui->stackedWidget->setCurrentIndex(0);
+        ui->actionGrap->setChecked(true);
+        ui->textHex->clear();
+        }
 }
 
 void MainWindow::sltActionGraph(bool checked)
 {
-//    if(checked){
-//        ui->stackedWidget->setCurrentIndex(1);
-//        ui->actionHex->setChecked(false);
-//        ui->graphCommon->CurveClear();
-//        ui->graphEEG->CurveClear();
-//    }else{
-//        ui->stackedWidget->setCurrentIndex(0);
-//        ui->actionHex->setChecked(true);
-    //    }
+    if(checked){
+        ui->stackedWidget->setCurrentIndex(0);
+        ui->actionHex->setChecked(false);
+    }else{
+        ui->stackedWidget->setCurrentIndex(1);
+        ui->actionHex->setChecked(true);
+    }
 }
 
 void MainWindow::sltActionAbout()
@@ -430,12 +430,16 @@ void MainWindow::sltActionGithub()
 
 void MainWindow::initUi()
 {
+    retriverWgt = new Retriver;
+
     ui->widgetAttention->setLabel("Attention");
     ui->widgetMeditation->setLabel("Meditation");
 }
 
 void MainWindow::initConnections()
 {
+    //实际串口数据
+    connect(retriverWgt,&Retriver::rawData,this,&MainWindow::sltReceiveData);
     //模拟数据
     connect(ui->actionTest,&QAction::triggered,this,&MainWindow::sltActionTest);
     //串口连接

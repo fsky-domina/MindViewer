@@ -5,6 +5,7 @@
 
 #include "simgen.h"
 #include "common.h"
+#include "retriver.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,8 +25,8 @@ public slots:
     void sltReceiveData(QByteArray ba);
 
 private slots:
-    void sltActionTest();
-    void sltActionCOM();
+    void sltActionTest(bool checked);
+    void sltActionCOM(bool checked);
     void sltActionExit();
     void sltActionHex(bool checked);
     void sltActionGraph(bool checked);
@@ -40,8 +41,8 @@ private:
 private:
     Ui::MainWindow *ui;
 
-    SimGen * simGen;
-    //Retriver *retriverWgt;
+    SimGen * simGen = nullptr;
+    Retriver *retriverWgt;
 
     QByteArray mBuff;//串口缓冲区
 };
