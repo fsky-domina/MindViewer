@@ -47,6 +47,9 @@
 
 //eeg包可能包含的所有值
 struct _eegPkt{
+    bool isRawValid;
+    short raw;
+    bool isEEGValid;
     int delta;
     int theta;
     int lowAlpha;
@@ -55,14 +58,21 @@ struct _eegPkt{
     int highBeta;
     int lowGamma;
     int midGamma;
+    bool isAttentionValid;
     uchar attention;//0-100
+    bool isMeditationValid;
     uchar meditation;//0-100
     int blink;//1-255
     uchar mwl;//mind-wandering level 走神程度 0-10
+    bool isSignalValid;
     uchar signal;//0-200
+    bool isPowerValid;
     uchar power;//电源指示0-100
 
     void init(){
+        isRawValid=false;
+        raw=0;
+        isEEGValid=false;
         delta=0;
         theta=0;
         lowAlpha=0;
@@ -71,11 +81,15 @@ struct _eegPkt{
         highBeta=0;
         lowGamma=0;
         midGamma=0;
+        isAttentionValid=false;
         attention=0;
+        isMeditationValid=false;
         meditation=0;
         blink=0;
         mwl=0;
+        isSignalValid=false;
         signal=0;
+        isPowerValid=false;
         power=0;
     }
 };//一个数据包包含的所有值

@@ -39,14 +39,10 @@ MainWindow::~MainWindow()
 }
 
 //使用状态机解析原始数据
-int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &common, bool &eeg, _eegPkt &pkt)
+int MainWindow::parserData(QByteArray ba, _eegPkt &pkt)
 {
     //输入的数据ba只包含一个有效包
     //qDebug()<<"parse start";
-    raw=false;//此数据包是否包含原始数据
-    rawValue=0;
-    eeg=false;//此数据包是否包含eeg数据
-    common=false;//此数据包是否包含注意力/冥想等数据
 
     if(ba.isEmpty()) return -1;//如果没有数据就直接退出
 
@@ -134,11 +130,11 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
             if((uchar)buff[0]==0x01){//电源值，最大为127
                 //如果缓冲区大小小于2位
                 if(buff.size() < 2){
-                    common = false;
+                    pkt.isPowerValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
-                common=true;
+                pkt.isPowerValid=true;
                 pkt.power=(uchar)buff[1];
                 state=PARSER_STATE_PAYLOAD;
                 buff.remove(0,2);
@@ -146,12 +142,12 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
             }else if((uchar)buff[0]==0x02){//数据信号强度值
                 //如果缓冲区大小小于2位
                 if(buff.size() < 2){
-                    common= false;
+                    pkt.isSignalValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
                 //qDebug()<<"signal value "<<(uchar)buff[1];
-                common=true;
+                pkt.isSignalValid=true;
                 pkt.signal=(uchar)buff[1];
                 state=PARSER_STATE_PAYLOAD;
                 buff.remove(0,2);
@@ -161,12 +157,12 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
             }else if((uchar)buff[0]==0x04){//注意力值
                 //如果缓冲区大小小于2位
                 if(buff.size() < 2){
-                    common = false;
+                    pkt.isAttentionValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
                 //qDebug()<<"attention value "<<(uchar)buff[1];
-                common=true;
+                pkt.isAttentionValid=true;
                 pkt.attention=(uchar)buff[1];
                 state=PARSER_STATE_PAYLOAD;
                 buff.remove(0,2);
@@ -174,12 +170,12 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
             }else if((uchar)buff[0]==0x05){//冥想值
                 //如果缓冲区大小小于2位
                 if(buff.size() < 2){
-                    common = false;
+                    pkt.isMeditationValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
                 //qDebug()<<"meditation value "<<(uchar)buff[1];
-                common=true;
+                pkt.isMeditationValid=true;
                 pkt.meditation=(uchar)buff[1];
                 state=PARSER_STATE_PAYLOAD;
                 buff.remove(0,2);
@@ -191,12 +187,12 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
                 //qDebug()<<"raw data";
                 //如果缓冲区大小小于5位
                 if(buff.size() < 5){
-                    raw = false;
+                    pkt.isRawValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
-                raw=true;
-                rawValue=((uchar)buff[2]<<8)|(uchar)buff[3];
+                pkt.isRawValid=true;
+                pkt.raw=((uchar)buff[2]<<8)|(uchar)buff[3];
                 buff.remove(0,5);//4个数据以及最后的校验值
                 state = PARSER_STATE_NULL;
                 break;
@@ -208,11 +204,11 @@ int MainWindow::parserData(QByteArray ba, bool &raw, short &rawValue, bool &comm
                 //qDebug()<<"parser eeg length "<<(uchar)buff[i+1];
                 //如果缓冲区大小小于24位
                 if(buff.size() < 26){
-                    eeg = false;
+                    pkt.isEEGValid=false;
                     state = PARSER_STATE_SYNC;
                     break;
                 }
-                eeg=true;
+                pkt.isEEGValid=true;
                 //tgam数据默认为大端
                 pkt.delta =((uint)buff[2]<<16)|((uint)buff[3]<<8)|((uint)buff[4]);
                 pkt.theta =((uint)buff[5]<<16)|((uint)buff[6]<<8)|((uint)buff[7]);
@@ -297,23 +293,32 @@ void MainWindow::sltReceiveData(QByteArray ba)
                         //qDebug()<<"after delete"<<mBuff;
                         //解析函数一次只解析一个包
                         {
-                            bool raw,eeg,common;
-                            short rawValue;
                             struct _eegPkt pkt;
                             pkt.init();
-                            if(parserData(tmpBA,raw,rawValue,common,eeg,pkt)!=0){
+                            if(parserData(tmpBA,pkt)!=0){
                                 qDebug()<<"Cannot parse data.";
                                 return;
                             }
                             //qDebug()<<"parsered";
-                            if(common){
+                            if(1){
                             }
                             //qDebug()<<"eeg";
-                            if(eeg){
+                            if(pkt.isEEGValid){
+                                //8个数据
+                                QVector<double> eegData;
+                                eegData.append(pkt.delta);
+                                eegData.append(pkt.theta);
+                                eegData.append(pkt.lowAlpha);
+                                eegData.append(pkt.highAlpha);
+                                eegData.append(pkt.lowBeta);
+                                eegData.append(pkt.highBeta);
+                                eegData.append(pkt.lowGamma);
+                                eegData.append(pkt.midGamma);
+                                ui->widgetEEG->updateData(eegData);
                             }
                             //qDebug()<<"raw";
-                            if(raw){
-                                ui->widgetRaw->appendData(rawValue);
+                            if(pkt.isRawValid){
+                                ui->widgetRaw->appendData(pkt.raw);
                             }
                         }
                     }

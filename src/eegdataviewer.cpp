@@ -1,7 +1,7 @@
 #include "eegdataviewer.h"
 
-const QwtInterval s_radialInterval(0,10);
-//const QwtInterval s_radialInterval(-32768,32767);
+//const QwtInterval s_radialInterval(0,10);
+const QwtInterval s_radialInterval(-32768,32767);
 const QwtInterval s_azimuthInterval(0,360);
 
 EEGDataViewer::EEGDataViewer(QWidget *parent)

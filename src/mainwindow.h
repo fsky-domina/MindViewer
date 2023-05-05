@@ -18,7 +18,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    int parserData(QByteArray ba, bool &raw, short &rawValue, bool &common,bool &eeg, struct _eegPkt &pkt);
+    int parserData(QByteArray ba, struct _eegPkt &pkt);
 
 public slots:
     void sltReceiveData(QByteArray ba);
