@@ -4,16 +4,15 @@ SimGen::SimGen(QObject *parent)
     : QObject{parent}
 {
     timer = new QTimer();
-    timer->setInterval(1000);
+    timer->setInterval(100);
     connect(timer,&QTimer::timeout,[=](){
         QByteArray buff;
         buff.clear();
-//        if(i%51==0){//每512个包就有一个大包
-//            buff = getEEG();
-//        }else{//其他状态为小包
-//            buff = getRaw();
-//        }
-        buff = getEEG();
+        if(i%11==0){//每512个包就有一个大包
+            buff = getEEG();
+        }else{//其他状态为小包
+            buff = getRaw();
+        }
 
         emit sendData(buff);
 
