@@ -302,6 +302,10 @@ void MainWindow::sltReceiveData(QByteArray ba)
                             qDebug()<<"parsered";
                             if(1){
                             }
+                            //信号强度
+                            if(pkt.isSignalValid){
+                                ui->widgetSignal->setValue(pkt.signal);
+                            }
                             //电源
                             if(pkt.isPowerValid){
                                 ui->widgetPower->setValue(pkt.power);

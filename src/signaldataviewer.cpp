@@ -5,6 +5,23 @@ SignalDataViewer::SignalDataViewer(QWidget *parent)
     , m_signalStrength(SignalStrength::Zero)
 {}
 
+void SignalDataViewer::setValue(short v)
+{
+    uchar s = 0;
+    if(v<=0){
+        s=0;
+    }else if(v>0 && v<=64){
+        s=1;
+    }else if(v>64 && v<= 128){
+        s=2;
+    }else if(v>128 && v<=254){
+        s=3;
+    }
+
+    setSignalStrength(s);
+}
+
+//信号强度最大值为255
 void SignalDataViewer::setSignalStrength(uchar s)
 {
     m_signalStrength = (SignalStrength)s;

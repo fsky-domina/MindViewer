@@ -27,6 +27,7 @@ class SignalDataViewer : public QWidget
 public:
     explicit SignalDataViewer(QWidget *parent = nullptr);
 
+    void setValue(short v);
     //设置信号强度
     void setSignalStrength(uchar s);
 
