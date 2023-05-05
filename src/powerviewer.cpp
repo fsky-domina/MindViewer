@@ -6,9 +6,10 @@ PowerViewer::PowerViewer(QWidget *parent)
 {
 }
 
+//输入数据为3V的对应值127
 void PowerViewer::setValue(double v)
 {
-    m_value = v;
+    m_value = v / 127.0 * 100;
 }
 
 void PowerViewer::paintEvent(QPaintEvent *)
@@ -42,4 +43,6 @@ void PowerViewer::paintEvent(QPaintEvent *)
     pen.setBrush(Qt::black);
     painter.setPen(pen);
     painter.drawText(contentsRect(),Qt::AlignCenter,QString::number((int)m_value));
+
+    update();
 }

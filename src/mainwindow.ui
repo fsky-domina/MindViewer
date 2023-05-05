@@ -47,7 +47,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="PowerViewer" name="widget" native="true">
+       <widget class="PowerViewer" name="widgetPower" native="true">
         <property name="minimumSize">
          <size>
           <width>100</width>

@@ -299,9 +299,14 @@ void MainWindow::sltReceiveData(QByteArray ba)
                                 qDebug()<<"Cannot parse data.";
                                 return;
                             }
-                            //qDebug()<<"parsered";
+                            qDebug()<<"parsered";
                             if(1){
                             }
+                            //电源
+                            if(pkt.isPowerValid){
+                                ui->widgetPower->setValue(pkt.power);
+                            }
+                            //
                             //qDebug()<<"eeg";
                             if(pkt.isEEGValid){
                                 //8个数据
