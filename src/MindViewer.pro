@@ -41,6 +41,7 @@ SOURCES += \
     mainwindow.cpp \
     powerviewer.cpp \
     rawdataviewer.cpp \
+    retriver.cpp \
     signaldataviewer.cpp \
     simgen.cpp \
     valueindicator.cpp
@@ -51,12 +52,14 @@ HEADERS += \
     mainwindow.h \
     powerviewer.h \
     rawdataviewer.h \
+    retriver.h \
     signaldataviewer.h \
     simgen.h \
     valueindicator.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    retriver.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
