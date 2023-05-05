@@ -306,7 +306,14 @@ void MainWindow::sltReceiveData(QByteArray ba)
                             if(pkt.isPowerValid){
                                 ui->widgetPower->setValue(pkt.power);
                             }
-                            //
+                            //注意力
+                            if(pkt.isAttentionValid){
+                                ui->widgetAttention->setValue(pkt.attention);
+                            }
+                            //冥想值
+                            if(pkt.isMeditationValid){
+                                ui->widgetMeditation->setValue(pkt.meditation);
+                            }
                             //qDebug()<<"eeg";
                             if(pkt.isEEGValid){
                                 //8个数据
