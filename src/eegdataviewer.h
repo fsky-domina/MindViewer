@@ -27,9 +27,6 @@ public:
 
         m_data.resize(9);
         //测试数据
-//        for(int i=0;i<9;i++){
-//            m_data[i]=5;
-//        }
     }
 
     size_t size() const override{
@@ -38,6 +35,7 @@ public:
 
     void updateData(QVector<double> eeg){
         //进行数据转换
+        m_data = eeg;
     }
 
     QwtPointPolar sample(size_t i) const override{

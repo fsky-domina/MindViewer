@@ -299,9 +299,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                                 qDebug()<<"Cannot parse data.";
                                 return;
                             }
-                            qDebug()<<"parsered";
-                            if(1){
-                            }
+                            //qDebug()<<"parsered";
                             //信号强度
                             if(pkt.isSignalValid){
                                 ui->widgetSignal->setValue(pkt.signal);
@@ -330,6 +328,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                                 eegData.append(pkt.highBeta);
                                 eegData.append(pkt.lowGamma);
                                 eegData.append(pkt.midGamma);
+                                eegData.append(pkt.delta);
                                 ui->widgetEEG->updateData(eegData);
                             }
                             //qDebug()<<"raw";

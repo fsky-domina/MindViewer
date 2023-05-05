@@ -166,7 +166,7 @@ QByteArray SimGen::getRaw()
 QByteArray SimGen::getEEG()
 {
     //不同值测试不同能力
-    switch(0){
+    switch(2){
     case 0://测试0xaa 0xaa 0xaa解析能力
     {
         QByteArray pkg2;
@@ -186,7 +186,7 @@ QByteArray SimGen::getEEG()
         pkg2.append(0xe3);
         return pkg2;
     }
-    case 1:
+    case 1://测试包组合功能
     {
 //        QByteArray pkg2;
 //        pkg2.clear();
