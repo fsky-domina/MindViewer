@@ -253,6 +253,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
             //一个包最起码包含一个有效数据类型0xaa 0xaa 0x02 0xaa 0xaa
             return;//此时包肯定不完整，就结束
         }else{//有可能一次收的数据不完整先判断
+            //TODO 可能出现的问题是，如果还没有处理完当前包，下一包就来了
             while(mBuff.size()>=5){//提取有效数据
                 if(mBuff[0]==0xAA && mBuff[1]==0xAA){//先找包头
                     //包大小

@@ -22,13 +22,21 @@ EEGDataViewer::EEGDataViewer(QWidget *parent)
     m_grid->showGrid( QwtPolar::Radius, true );
     m_grid->attach( this );
 
-    //数据
-    data = new EEGData();
+    //用于指示
+    baseData = new BaseData();
+    m_baseCurve = new QwtPolarCurve();
+    m_baseCurve->setStyle(QwtPolarCurve::Lines);
+    m_baseCurve->setPen(QPen(Qt::red,1));
+    m_baseCurve->setSymbol( new QwtSymbol( QwtSymbol::Rect,
+         QBrush( Qt::cyan ), QPen( Qt::white ), QSize( 3, 3 ) ) );
+    m_baseCurve->setData(baseData);
+    m_baseCurve->attach(this);
 
+    data = new EEGData();//数据
     //曲线
     m_curve = new QwtPolarCurve();
     m_curve->setStyle(QwtPolarCurve::Lines);
-    m_curve->setPen(QPen(Qt::green,2));
+    m_curve->setPen(QPen(Qt::green,3));
     m_curve->setSymbol( new QwtSymbol( QwtSymbol::Rect,
          QBrush( Qt::cyan ), QPen( Qt::white ), QSize( 3, 3 ) ) );
     m_curve->setData(data);
