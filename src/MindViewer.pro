@@ -9,7 +9,7 @@ QT       += serialport #COM支持
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -36,11 +36,10 @@ unix:{
 }
 
 SOURCES += \
-    eegdataviewer.cpp \
+    curves.cpp \
     main.cpp \
     mainwindow.cpp \
     powerviewer.cpp \
-    rawdataviewer.cpp \
     retriver.cpp \
     signaldataviewer.cpp \
     simgen.cpp \
@@ -48,23 +47,23 @@ SOURCES += \
 
 HEADERS += \
     common.h \
-    eegdataviewer.h \
+    curves.h \
     mainwindow.h \
     powerviewer.h \
-    rawdataviewer.h \
     retriver.h \
     signaldataviewer.h \
     simgen.h \
     valueindicator.h
 
 FORMS += \
+    curves.ui \
     mainwindow.ui \
     retriver.ui
+
+RESOURCES += \
+    resources.qrc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-RESOURCES += \
-    resources.qrc
