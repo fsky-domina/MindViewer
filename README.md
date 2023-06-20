@@ -1,20 +1,18 @@
 # MindViewer
 
+神念科技脑波模块TGAM图像化显示工具
+
 官方说明手册翻译：<a href="https://feater.top/tgam/translation-of-tgam-development-doc">TGAM开发手册翻译</a>
 
 TGAM连接及测试：<a href="https://feater.top/tgam/setup-and-installation-of-tgam-module">神念科技TGAM模块组装测试</a>
 
 本软件开发流程和使用介绍：<a href="https://feater.top/qt/mindviewer-tgam-module-graphic-application">MindViewer-TGAM模块数据图形化软件</a>
 
-神念科技脑波模块TGAM图像化显示工具
-
 配置好TGAM模块，连接好蓝牙，然后打开本软件读取端口数据就可以看见数据显示了。
 
-每秒钟接近600个点，不想使用qcharts（听说性能不是很好），绘图部分使用qwt库。
+Qt 5.15.3 + QWT6.2.0 + Linux Mint 21.1
 
-Qt + QWT6.1.3 + Ubuntu 22.04 LTS
-
-## v3.0 （未完成）
+## v3.0
 
 此版本打算换一个抄
 
@@ -22,15 +20,21 @@ Qt + QWT6.1.3 + Ubuntu 22.04 LTS
 
 提升科技感\^_\^，同时提高稳定性。
 
+图片左侧的同心圆无法实现，只能两个结合。
+
+<img src="/img/mymv3.webp" alt="v3.0" />
+
+在2.0版本中位于下方的冥想+注意力+信号强度+电源指示折线图，变为冥想注意力指示器、电源变为手机电源格式、信号强度变为手机信号强度格式
+
 ## v2.0
 
 勉强可用。
 
-绘图效果：<img src="/img/mymv.webp" alt="result" />
+绘图效果：<img src="/img/mymv2.webp" alt="result" />
 
 当时是抄的这个
 
-<img src="/img/mv1.webp" alt="result" />
+<img src="/img/mv2.webp" alt="result" />
 
 ## v1.0
 
