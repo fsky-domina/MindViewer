@@ -232,7 +232,6 @@ int MainWindow::parserData(QByteArray ba, _eegPkt &pkt)
 void MainWindow::sltReceiveData(QByteArray ba)
 {
     if(ba.size()<=0) return;
-    //qDebug()<<"receive 1 "<<ba;
 
     //16进制模式，直接添加到编辑框里面
     if(ui->actionHex->isChecked()){
@@ -250,12 +249,17 @@ void MainWindow::sltReceiveData(QByteArray ba)
         //qDebug()<<"buff "<<mBuff;
 
         if(mBuff.size()<=5){
+            //qDebug()<<"buffer size is small then min size";
             //一个包最起码包含一个有效数据类型0xaa 0xaa 0x02 0xaa 0xaa
             return;//此时包肯定不完整，就结束
         }else{//有可能一次收的数据不完整先判断
+            //qDebug()<<"buffer size is valid"<<mBuff.size();
             //TODO 可能出现的问题是，如果还没有处理完当前包，下一包就来了
             while(mBuff.size()>=5){//提取有效数据
-                if(mBuff[0]==0xAA && mBuff[1]==0xAA){//先找包头
+                //qDebug()<<"buffer size is valid2"<<mBuff.size();
+                //qDebug()<<mBuff;
+                if((uchar)mBuff[0]==0xAA && (uchar)mBuff[1]==0xAA){//先找包头
+                    //qDebug()<<"valid header";
                     //包大小
                     int pkgSize = mBuff[2];
                     if(pkgSize + 2 + 1+ 1 > mBuff.size()){
@@ -264,11 +268,12 @@ void MainWindow::sltReceiveData(QByteArray ba)
                     }else{
                         //此时继续解析
                         //有一种特殊情况 0xaa 0xaa 0xaa
-                        if(mBuff[0]==0xaa && mBuff[1]==0xaa && mBuff[2]==0xaa){
+                        if((uchar)mBuff[0]==0xaa && (uchar)mBuff[1]==0xaa && (uchar)mBuff[2]==0xaa){
+                            //qDebug()<<"0xaa 0xaa 0xaa";
                             mBuff.remove(0,1);
                             continue;
                         }
-                        if(mBuff[0]!=(uchar)0xAA || mBuff[1]!=(uchar)0xAA ){
+                        if((uchar)mBuff[0]!=(uchar)0xAA || (uchar)mBuff[1]!=(uchar)0xAA ){
                             //qDebug()<<"next pkg"<<mBuff;
                             //删除一个直到符合
                             mBuff.remove(0,1);
@@ -307,7 +312,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                             if(pkt.isMeditationValid){
                                 ui->widgetMeditation->setValue(pkt.meditation);
                             }
-                            //qDebug()<<"eeg";
+
                             if(pkt.isEEGValid){
                                 //8个数据
                                 QVector<double> eegData;
@@ -320,11 +325,11 @@ void MainWindow::sltReceiveData(QByteArray ba)
                                 eegData.append(pkt.lowGamma);
                                 eegData.append(pkt.midGamma);
                                 eegData.append(pkt.delta);
-                                ui->widgetEEG->updateData(eegData);
+                                ui->widgetEEG->updateEEGData(pkt);
                             }
-                            //qDebug()<<"raw";
+
                             if(pkt.isRawValid){
-                                ui->widgetRaw->appendData(pkt.raw);
+                                ui->widgetEEG->updateRawData(pkt.raw);
                             }
                         }
                     }
@@ -333,8 +338,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
                     mBuff.remove(0,1);
                 }
             }//while buff size >5
-        }//if buff size <5
-        //qDebug()<<"mBuff"<<mBuff;
+        }//if buff size <=5
     }//if action hex is checked
 }
 //使用测试模拟数据

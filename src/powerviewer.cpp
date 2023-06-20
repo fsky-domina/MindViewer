@@ -2,7 +2,7 @@
 
 PowerViewer::PowerViewer(QWidget *parent)
     : QWidget(parent)
-    , m_value(18)
+    , m_value(100)
 {
 }
 
