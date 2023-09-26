@@ -8,13 +8,11 @@ SignalDataViewer::SignalDataViewer(QWidget *parent)
 void SignalDataViewer::setValue(short v)
 {
     uchar s = 0;
-    if(v<=0){
-        s=0;
-    }else if(v>0 && v<=64){
+    if(v<=64){
         s=1;
-    }else if(v>64 && v<= 128){
+    }else if(v<= 128){
         s=2;
-    }else if(v>128 && v<=254){
+    }else if(v<=254){
         s=3;
     }
 

@@ -69,7 +69,7 @@ int MainWindow::parserData(QByteArray ba, _eegPkt &pkt)
         case PARSER_STATE_PAYLOAD_LENGTH:
             payloadLength=(uchar)buff[0];//接下来是长度
             //qDebug()<<"payloadlength"<<payloadLength;
-            if(payloadLength>=170 || payloadLength<=0){//如果长度大于170就丢弃此包并查找下一个0xaa 0xaa
+            if(payloadLength>=170){//如果长度大于170就丢弃此包并查找下一个0xaa 0xaa
                 qDebug()<<"this package payloadLength(the 3rd value) is wrong";
                 state = PARSER_STATE_SYNC;
             }else{
