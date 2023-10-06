@@ -155,8 +155,10 @@
    </property>
    <widget class="QMenu" name="menuOperation">
     <property name="title">
-     <string>Operation</string>
+     <string>File</string>
     </property>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
     <addaction name="actionTest"/>
     <addaction name="actionCOM"/>
     <addaction name="separator"/>
@@ -231,6 +233,15 @@
    </property>
    <property name="text">
     <string>Github</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/icons/open.svg</normaloff>:/resources/icons/open.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open</string>
    </property>
   </action>
  </widget>

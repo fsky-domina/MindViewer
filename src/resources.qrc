@@ -9,5 +9,6 @@
         <file>resources/icons/github.svg</file>
         <file>resources/icons/exit.svg</file>
         <file>resources/icons/about.svg</file>
+        <file>resources/icons/open.svg</file>
     </qresource>
 </RCC>
