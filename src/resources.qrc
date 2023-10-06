@@ -4,11 +4,10 @@
         <file>resources/icons/serialport.svg</file>
         <file>resources/icons/qt.png</file>
         <file>resources/icons/mind.svg</file>
-        <file>resources/icons/hex.svg</file>
-        <file>resources/icons/graph.svg</file>
         <file>resources/icons/github.svg</file>
         <file>resources/icons/exit.svg</file>
         <file>resources/icons/about.svg</file>
         <file>resources/icons/open.svg</file>
+        <file>resources/icons/capture.svg</file>
     </qresource>
 </RCC>
