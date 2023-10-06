@@ -28,8 +28,6 @@ private slots:
     void sltActionTest(bool checked);
     void sltActionCOM(bool checked);
     void sltActionExit();
-    void sltActionHex(bool checked);
-    void sltActionGraph(bool checked);
     void sltActionAbout();
     void sltActionAboutQt();
     void sltActionGithub();

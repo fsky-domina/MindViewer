@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     initUi();//初始化界面
     initConnections();//初始化信号槽
 
-    ui->actionGrap->setChecked(true);//默认使用图形模式
     resize(800,820);
 
     mBuff.clear();
@@ -233,16 +232,7 @@ void MainWindow::sltReceiveData(QByteArray ba)
 {
     if(ba.size()<=0) return;
 
-    //16进制模式，直接添加到编辑框里面
-    if(ui->actionHex->isChecked()){
-        QString s;
-        for(int i=0;i<ba.size();i++){
-            QString ss,sss;
-            sss=ss.asprintf("0x%02X ",(unsigned char)ba.at(i));
-            s+=sss;
-        }
-        ui->textHex->appendPlainText(s);
-    }else{//图形模式
+    {//图形模式
         //把新收到的数据填充到缓冲区
         mBuff.append(ba);
         //qDebug()<<"receive 2"<<ba;
@@ -345,12 +335,6 @@ void MainWindow::sltReceiveData(QByteArray ba)
 void MainWindow::sltActionTest(bool checked)
 {
     if(checked){
-        if(ui->actionHex->isChecked()){
-            ui->stackedWidget->setCurrentIndex(1);
-        }
-        if(ui->actionGrap->isChecked()){
-            ui->stackedWidget->setCurrentIndex(0);
-        }
         ui->actionCOM->setChecked(false);
         sltActionCOM(false);
         simGen=new SimGen();
@@ -367,12 +351,6 @@ void MainWindow::sltActionTest(bool checked)
 void MainWindow::sltActionCOM(bool checked)
 {
     if(checked){
-        if(ui->actionHex->isChecked()){
-            ui->stackedWidget->setCurrentIndex(1);
-        }
-        if(ui->actionGrap->isChecked()){
-            ui->stackedWidget->setCurrentIndex(0);
-        }
         ui->actionTest->setChecked(false);
         sltActionTest(false);
         retriverWgt->showWgt();
@@ -384,30 +362,6 @@ void MainWindow::sltActionCOM(bool checked)
 void MainWindow::sltActionExit()
 {
     exit(0);
-}
-
-void MainWindow::sltActionHex(bool checked)
-{
-    if(checked){//文本模式
-        ui->stackedWidget->setCurrentIndex(1);
-        ui->actionGrap->setChecked(false);
-        ui->textHex->clear();
-    }else{
-        ui->stackedWidget->setCurrentIndex(0);
-        ui->actionGrap->setChecked(true);
-        ui->textHex->clear();
-        }
-}
-
-void MainWindow::sltActionGraph(bool checked)
-{
-    if(checked){
-        ui->stackedWidget->setCurrentIndex(0);
-        ui->actionHex->setChecked(false);
-    }else{
-        ui->stackedWidget->setCurrentIndex(1);
-        ui->actionHex->setChecked(true);
-    }
 }
 
 void MainWindow::sltActionAbout()
@@ -451,10 +405,6 @@ void MainWindow::initConnections()
     connect(ui->actionCOM,&QAction::triggered,this,&MainWindow::sltActionCOM);
     //退出
     connect(ui->actionExit,&QAction::triggered,this,&MainWindow::sltActionExit);
-    //16进制数据模式
-    connect(ui->actionHex,&QAction::triggered,this,&MainWindow::sltActionHex);
-    //图形模式
-    connect(ui->actionGrap,&QAction::triggered,this,&MainWindow::sltActionGraph);
     //关于
     connect(ui->actionAbout,&QAction::triggered,this,&MainWindow::sltActionAbout);
     //关于qt
