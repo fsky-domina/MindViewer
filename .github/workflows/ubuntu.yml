@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04]
-        qt_ver: [5.15.3]
+        qt_ver: [5.15.2]
         qt_arch: [gcc_64]
         exclude: 
           # Qt6.2.2 need GLIBC_2.28, ubuntu 18.04 have not.
